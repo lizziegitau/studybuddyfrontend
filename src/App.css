@@ -1,0 +1,181 @@
+.App {
+  text-align: center;
+  height: 100%;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #D4CDF4;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.signup {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  background-color: #9381ff;
+  overflow: hidden;
+}
+
+.login {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+.imageContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: white;
+  height: 100%;
+  position: relative;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  text-align: center;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  position: absolute;
+  top: 30px;
+  left: 20px;
+  width: 150px;
+  height: auto;
+}
+
+.illustration {
+  max-width: 80%;
+  margin-top: 2.5rem;
+}
+
+.imageContainer h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.formContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  height: 100%;
+  background: white;
+}
+
+.formContainer h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.socialContainer {
+  margin-bottom: 1rem;
+}
+
+span {
+  margin: 1rem 0;
+}
+
+.dashboard-content {
+  display: flex;
+  flex-grow: 1;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.task-list-container {
+  max-width: 100%;
+  overflow-y: auto;
+  padding-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 40px;
+}
+
+.table-wrapper {
+  width: 100%;
+  max-width: 900px;
+  overflow-x: auto;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-radius: 8px;
+}
+
+.task-board-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.session-buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f7ff;
+  color: #9381ff; 
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.folders-image {
+  height: 200px;
+  width: 200px;
+}
