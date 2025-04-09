@@ -48,5 +48,7 @@ export const flashcards = [
   { id: 18, deckId: 109, deckName: "Psychology", question: "What is Maslow’s hierarchy of needs?", answer: "A psychological theory of human motivation arranged in a five-tier model of needs." },
   
   { id: 19, deckId: 110, deckName: "Economics", question: "What is inflation?", answer: "The general increase in prices and fall in the purchasing value of money." },
-  { id: 20, deckId: 110, deckName: "Economics", question: "What is supply and demand?", answer: "An economic model of price determination in a market." }
+  { id: 20, deckId: 110, deckName: "Economics", question: "What is supply and demand?", answer: "An economic model of price determination in a market." },
+
+  {deckId: 111, deckName: "Swahili"}
 ]

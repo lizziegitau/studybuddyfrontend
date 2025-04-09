@@ -1,78 +1,65 @@
-import React, { useState } from "react";
-import { Container, Card, CardContent, Typography, CircularProgress, List, ListItem, ListItemText, Avatar, Box } from "@mui/material";
+import '../App.css';
+import { Box, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2'
-import { blue, green, purple, red } from "@mui/material/colors";
+import { tasks } from '../taskData';
+import DashTaskList from '../components/dashtaskList';
+import StudyBarChart from '../components/studyBarChart';
+import DashboardCard from '../components/dashboardCard';
+import { useUser } from "@clerk/clerk-react";
 
-const MainBoard = () => {
-  const [taskStats, setTaskStats] = useState({
-    total: 240,
-    inProgress: 64,
-    pending: 20,
-    completed: 156,
-  });
+function MainBoard() {
+  const { user } = useUser();
+  const today = new Date().toISOString().split('T')[0];
+  const todayTasks = tasks.filter(task => task.dueDate === today);
 
-  const [sprintProgress, setSprintProgress] = useState({
-    completed: 75,
-    development: 80,
-    deployment: 60,
-    uiDesign: 90,
-  });
+  const taskCounts = {
+    left: todayTasks.filter(task => task.status === "To-Do").length,
+    done: todayTasks.filter(task => task.status === "Done").length,
+    inProgress: todayTasks.filter(task => task.status === "In-Progress").length
+  };
 
-  const [toDoList, setToDoList] = useState([
-    { text: "Define user personas", status: "Approved" },
-    { text: "Create wireframes", status: "In Progress" },
-    { text: "Research audience", status: "Pending" },
-    { text: "Refine user flow", status: "Approved" },
-  ]);
+  const taskCards = [
+    { label: "Tasks Left", value: taskCounts.left, color: "#C6E7FF", textColor: "#133E87" },
+    { label: "Done", value: taskCounts.done, color: "#A5D6A7", textColor: "#2E7D32" },
+    { label: "In Progress", value: taskCounts.inProgress, color: "#FDDBBB", textColor: "#F9A825" }
+  ]
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Grid container spacing={3}>
-        {/* Task Stats */}
-        {Object.entries(taskStats).map(([key, value], index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card sx={{ bgcolor: index % 2 === 0 ? blue[50] : purple[50] }}>
-              <CardContent>
-                <Typography variant="h6" color="textSecondary" gutterBottom>
-                  {key.replace(/([A-Z])/g, " $1").toUpperCase()}
-                </Typography>
-                <Typography variant="h4">{value}</Typography>
-              </CardContent>
-            </Card>
+    <Box p={3}>
+      <Box display='flex' alignItems='center' justifyContent='flex-start' mb={3}>
+        <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >{user.username}'s Dashboard</Typography>
+      </Box>
+      <DashboardCard/>
+      
+      <Grid container spacing={2} sx={{ my: 2, }}>
+        {taskCards.map((card, index) => (
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+            <Box sx={{ p: 3, textAlign: "center", backgroundColor: card.color }}>
+              <Typography variant="h6" sx={{ color: card.textColor, fontWeight: "bold" }}>
+                {card.value}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {card.label}
+              </Typography>
+            </Box>
           </Grid>
         ))}
-
-        {/* Sprint Progress */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Sprint Progress</Typography>
-              <Box display="flex" alignItems="center" gap={2}>
-                <CircularProgress variant="determinate" value={sprintProgress.completed} color="primary" size={60} />
-                <Typography variant="h6">{sprintProgress.completed}% Completed</Typography>
-              </Box>
-            </CardContent>
-          </Card>
+      </Grid>
+      <Grid container spacing={2} sx={{ mt: 2, }}>
+        <Grid size={{xs: 12, md: 6}}>
+          <Box sx={{ p: 2, minHeight: 300, height: "100%", display: "flex", flexDirection: "column" }}>
+            <StudyBarChart />
+          </Box>
         </Grid>
 
-        {/* To-Do List */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">Today's To-Do List</Typography>
-              <List>
-                {toDoList.map((task, index) => (
-                  <ListItem key={index}>
-                    <ListItemText primary={task.text} secondary={task.status} />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
+        <Grid size={{xs: 12, md: 6}}>
+          <Box sx={{ p: 2, minHeight: 300, height: "100%", display: "flex", flexDirection: "column" }}>
+            <DashTaskList tasks={tasks} />
+          </Box>
         </Grid>
       </Grid>
-    </Container>
+    </Box>
   );
-};
+}
 
 export default MainBoard;

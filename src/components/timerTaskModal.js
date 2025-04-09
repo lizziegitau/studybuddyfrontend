@@ -18,8 +18,6 @@ const style = {
 
 function TimerTaskModal({ open, onClose, onAddTasks }) {
 
-    console.log(tasks)
-
     const [selectedTasks, setSelectedTasks] = useState([]);
     const incompleteTasks = tasks.filter(task => !task.done);
 

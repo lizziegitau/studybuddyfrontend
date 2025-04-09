@@ -2,15 +2,13 @@ import React, { useState } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { events as initialEvents } from "../eventData";
 import { Button, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 const localizer = momentLocalizer(moment);
 
-const CalendarComponent = () => {
-  const [events, setEvents] = useState(initialEvents);
+const CalendarComponent = ({ setOpenEventModal, setNewEvent, events }) => {
   const [currentView, setCurrentView] = useState("month");
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -27,10 +25,8 @@ const CalendarComponent = () => {
   };
 
   const handleSelectSlot = ({ start, end }) => {
-    const title = prompt("Enter event title:");
-    if (title) {
-      setEvents([...events, { title, start, end }]);
-    }
+    setNewEvent({ title: "", start: moment(start).format("YYYY-MM-DDTHH:mm"), end: moment(end).format("YYYY-MM-DDTHH:mm"), priority: "" });
+    setOpenEventModal(true);
   };
 
   const eventStyleGetter = (event) => {

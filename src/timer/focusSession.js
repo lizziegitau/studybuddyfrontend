@@ -17,7 +17,7 @@ const StyledCard = styled(Card)({
 function FocusSession ({ onStart }) {
 
     const [skipBreaks, setSkipBreaks] = useState(false);
-    const [minutes, setMinutes] = useState(25);
+    const [minutes, setMinutes] = useState(35);
   
     const handleIncrement = () => setMinutes((prev) => Math.min(prev + 10, 240)); 
     const handleDecrement = () => setMinutes((prev) => Math.max(prev - 10, 10));

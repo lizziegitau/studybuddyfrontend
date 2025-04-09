@@ -1,13 +1,27 @@
-import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
+import { useEffect } from 'react';
+import { AuthenticateWithRedirectCallback, useUser } from "@clerk/clerk-react";
+import LoadingPage from "../components/loadingPage";
 
 const SSOCallback = () => {
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      if (user.username) {
+        window.location.href = "/dashboard";
+      }
+    }
+  }, [user]);
   
   return (
     <div className="sso-callback-container">
-      <p>Processing your authentication...</p>
+      <LoadingPage/>
       <AuthenticateWithRedirectCallback 
         signUpFallbackRedirectUrl="/dashboard"
         signInFallbackRedirectUrl="/dashboard"
+        onError={(error) => {
+          console.error("Authentication Error:", error);
+        }}
       />
     </div>
   );

@@ -28,14 +28,22 @@ function LogIn () {
 
     const handleSignIn = async (event) => {
         event.preventDefault();
+
+        if (!email) {
+            setError("Please enter your email.");
+            return;
+          }
+          
+          if (!password) {
+            setError("Please enter your password.");
+            return;
+          }
     
         try {
-            // Step 1: Create a sign-in attempt
             const signInAttempt = await signIn.create({
-                identifier: email, // Set the identifier (email)
+                identifier: email,
             });
     
-            // Step 2: Attempt first factor authentication (password)
             const result = await signInAttempt.attemptFirstFactor({
                 strategy: "password",
                 password: password,
@@ -62,7 +70,7 @@ function LogIn () {
             <div className="formContainer">
                 <h1>Welcome Back!</h1>
                 <div className="socialContainer">
-                    <Button variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", borderRadius: "20px", width: "100%"}} onClick={() => signIn.authenticateWithRedirect({ strategy: "oauth_google" })}>
+                    <Button variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", borderRadius: "20px", width: "100%"}} onClick={() => signIn.authenticateWithRedirect({ strategy: "oauth_google", redirectUrl: "/dashboard", })}>
                         Log In with Google
                     </Button>
                 </div>
@@ -110,7 +118,7 @@ function LogIn () {
                         <Button type="submit" variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", width: "100%", marginTop: 2, marginBottom: 1, borderRadius: "20px", "&:hover": {backgroundColor: "#7a6be6", transform: "scale(1.02)", transition: "0.2s ease-in-out",}}}>
                             Log In
                         </Button>
-                        <span>Don't have an account? <Link href="/" underline="hover" >Signup</Link></span>
+                        <span>Don't have an account? <Link href="/signup" underline="hover" >Signup</Link></span>
                     </Box>
                 </div>
             </div>

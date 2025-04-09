@@ -63,7 +63,6 @@ function SignUp () {
             await signUp.authenticateWithRedirect({
                 strategy: "oauth_google",
                 redirectUrl: "/sso-callback",
-                redirectUrlComplete: "/dashboard"
             });
         } catch (err) {
             console.error("Google sign up error:", err);

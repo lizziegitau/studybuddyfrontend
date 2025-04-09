@@ -1,5 +1,5 @@
-import '../App.css'
-import MainBoard from './mainBoard'
+import '../App.css';
+import MainBoard from './mainBoard';
 
 function Dashboard () {
 
@@ -7,7 +7,7 @@ function Dashboard () {
     return (
         <div className="dashboard-content"> 
             <div className="main-content" >
-                <MainBoard/>
+                <MainBoard />
             </div>
             
         </div>

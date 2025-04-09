@@ -3,14 +3,19 @@ import { Box, Button, Card, CardContent, Typography, Divider, Tooltip, IconButto
 import Grid from '@mui/material/Grid2';
 import AddIcon from '@mui/icons-material/Add'
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import StudyMode from './flashcardsStudyMode';
 import { flashcards } from "../flashcardData";
+import AddFlashcardModal from "./addFlashcard";
+import EditFlashcardModal from "./editFlashcard";
 
-const FlashcardGrid = ({ folder, onBack }) => {
+const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
   const [studyMode, setStudyMode] = useState(false);
-  const deckFlashcards = flashcards.filter(card => card.deckId === folder.deckId);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [selectedFlashcard, setSelectedFlashcard] = useState(null);
+  const [deckFlashcards, setDeckFlashcards] = useState(flashcards.filter(card => card.deckId === folder.deckId));
 
   if (studyMode) {
     return (
@@ -21,6 +26,16 @@ const FlashcardGrid = ({ folder, onBack }) => {
       />
     );
   }
+
+  const handleAddFlashcard = (newFlashcard) => {
+    setDeckFlashcards([...deckFlashcards, { id: Date.now(), ...newFlashcard }]);
+  };
+
+  const handleEditFlashcard = (updatedFlashcard) => {
+    setDeckFlashcards(deckFlashcards.map(card => 
+      card.id === updatedFlashcard.id ? updatedFlashcard : card
+    ));
+  };
   
     return (
       <Box sx={{ p:4, width: '100%' }}>
@@ -36,14 +51,14 @@ const FlashcardGrid = ({ folder, onBack }) => {
             Flashcards in {folder.deckName}
           </Typography>
 
-          <Button variant="contained" sx={{ backgroundColor: "#9381FF" }} onClick={() => setStudyMode(true)}>
+          <Button variant="contained" sx={{ backgroundColor: "#9381FF", visibility: deckFlashcards.length === 0 ? 'hidden' : 'visible' }} onClick={() => setStudyMode(true)}>
             Start Studying
           </Button>
         </Box>
 
         {deckFlashcards.length === 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',minHeight: '50vh', textAlign: 'center', p: 3}}>
-          <Card sx={{ p: 4, maxWidth: 500, width: '100%', backgroundColor: "#F8F7FF", borderRadius: "20px", display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <Card key={deckFlashcards.deckId} sx={{ p: 4, maxWidth: 500, width: '100%', backgroundColor: "#F8F7FF", borderRadius: "20px", display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <Typography variant="h5" color="text.secondary">
               You don't have any flashcards in this deck yet
             </Typography>
@@ -53,7 +68,7 @@ const FlashcardGrid = ({ folder, onBack }) => {
             <Button 
               variant="contained" 
               startIcon={<AddIcon />} 
-              //onClick={handleAddFlashcard}
+              onClick={() => setOpenCreateFlashcardModal(true)}
               sx={{ backgroundColor: "#9381FF" }}
             >
               Create Flashcard
@@ -67,7 +82,7 @@ const FlashcardGrid = ({ folder, onBack }) => {
             <Card key={flashcard.id} sx={{ margin: '0 auto', padding: 2, textAlign: "center", backgroundColor: "#F8F7FF", width: "100%", minHeight: "300px", borderRadius: "20px", position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
 
                 <Box sx={{position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: 1 }}>
-                  <IconButton size="small">
+                <IconButton size="small" onClick={() => {setOpenEditModal(true); setSelectedFlashcard(flashcard);}}>
                     <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton size="small" color="error">
@@ -75,7 +90,7 @@ const FlashcardGrid = ({ folder, onBack }) => {
                   </IconButton>
                 </Box>
 
-                <CardContent sx={{ width: "100%" }}>
+                <CardContent sx={{ width: "100%" }} >
                   <Typography variant="body1" sx={{ pb: 1 }}>{flashcard.question}</Typography>
                   <Divider sx={{ width: "80%", mx: "auto", my: 2 }} />
                   <Typography variant="body1" sx={{ pt: 1 }}>{flashcard.answer}</Typography>
@@ -96,9 +111,14 @@ const FlashcardGrid = ({ folder, onBack }) => {
               right: "40px",
               zIndex: 1000
             }}
+            onClick={() => setOpenAddModal(true)}
         >
           <AddIcon />
         </Fab>
+
+        <AddFlashcardModal open={openAddModal} onClose={() => setOpenAddModal(false)} folder={folder} onAddFlashcard={handleAddFlashcard} />
+
+        <EditFlashcardModal open={openEditModal} onClose={() => setOpenEditModal(false)} flashcard={selectedFlashcard} onUpdateFlashcard={handleEditFlashcard} />
 
       </Box>
     );

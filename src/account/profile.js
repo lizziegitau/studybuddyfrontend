@@ -1,59 +1,131 @@
-import React, { useState } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
-import { Avatar, Button, TextField, Container, Paper, Typography, Tabs, Tab, Box } from "@mui/material";
-import Grid from '@mui/material/Grid2'
+import { useState, useEffect } from 'react';
+import { Box, TextField, Button, Typography } from '@mui/material';
+import Grid from '@mui/material/Grid2';
+import { useUser, useAuth } from "@clerk/clerk-react";
+import NotifsSettings from './notifsSettings';
+import PasswordEditSettings from './passwordEditSettings';
 
-const Profile = () => {
+const SettingsPage = () => {
   const { signOut } = useAuth();
   const { user } = useUser();
-  const [tabIndex, setTabIndex] = useState(0);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [username, setUsername] = useState(user.username);
+  const [email, setEmail] = useState(user.primaryEmailAddress?.emailAddress || "");
 
-  const handleTabChange = (event, newIndex) => {
-    setTabIndex(newIndex);
+  const [notifications, setNotifications] = useState({
+    dueTasks: true,
+    upcomingEvents: true,
+  });
+
+  useEffect(() => {
+    const savedNotifications = JSON.parse(localStorage.getItem("notifications"));
+    if (savedNotifications) {
+      setNotifications(savedNotifications);
+    }
+  }, []);
+
+  const handleNotificationChange = (event) => {
+    const updatedNotifications = {
+      ...notifications,
+      [event.target.name]: event.target.checked,
+    };
+    setNotifications(updatedNotifications);
+    localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleInputChange = (setter) => (event) => setter(event.target.value);
+
+  const handleSaveChanges = async () => {
+    try {
+      await user.update({ username, primaryEmailAddress: email });
+      alert("Profile updated successfully!");
+      setIsEditing(false);
+    } catch (error) {
+      alert("Failed to update profile.");
+    }
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Paper elevation={3} sx={{ p: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            Settings
-          </Typography>
-          <Tabs value={tabIndex} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
-            <Tab label="General Information" />
-            <Tab label="Preferences" />
-            <Tab label="Security" />
-            <Tab label="Notifications" />
-          </Tabs>
-          <Box sx={{ mt: 2 }}>
-            {tabIndex === 0 && (
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4} sx={{ textAlign: "center" }}>
-                  <Avatar src={user?.imageUrl} sx={{ width: 100, height: 100, margin: "auto" }} />
-                  <Typography variant="h6">{user?.fullName}</Typography>
-                  <Button variant="contained" sx={{ mt: 1 }}>Upload New Photo</Button>
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <TextField fullWidth label="Business Name" variant="outlined" sx={{ mb: 2 }} />
-                  <TextField fullWidth label="Email Address" variant="outlined" sx={{ mb: 2 }} />
-                  <TextField fullWidth label="Phone Number" variant="outlined" sx={{ mb: 2 }} />
-                  <TextField fullWidth label="Country" variant="outlined" sx={{ mb: 2 }} />
-                  <TextField fullWidth label="City" variant="outlined" sx={{ mb: 2 }} />
-                </Grid>
-              </Grid>
+    <Box sx={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFEEDD', padding: 4 }}>
+      <Box sx={{ maxWidth: 600, width: '100%', backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3 }}>
+        <Typography variant="h5" fontWeight="bold" sx={{ mb: 3, textTransform: 'capitalize' }}>
+          {user.username}'s Settings
+        </Typography>
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+          Profile
+        </Typography>
+
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            <Grid size={{xs: 12}}>
+              <TextField
+                fullWidth
+                label="Username"
+                value={username}
+                onChange={handleInputChange(setUsername)}
+                variant="outlined"
+                margin="normal"
+                disabled={!isEditing}
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                value={email}
+                onChange={handleInputChange(setEmail)}
+                variant="outlined"
+                margin="normal"
+                disabled={!isEditing}
+              />
+              {isEditing ? (
+                <PasswordEditSettings />
+              ): (
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                value="********"
+                variant="outlined"
+                margin="normal"
+                disabled
+              />
             )}
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-            <Button variant="outlined" color="error" onClick={() => signOut()}>Log Out</Button>
+            </Grid>
+
             <Box>
-              <Button variant="outlined" sx={{ mr: 2 }}>Cancel</Button>
-              <Button variant="contained" color="primary">Save Changes</Button>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+                Notifications
+              </Typography>
+              <NotifsSettings notifications={notifications} handleNotificationChange={handleNotificationChange} />
             </Box>
-          </Box>
-        </Paper>
-      </Container>
+
+            <Grid size={{xs: 12}} sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+              <Button variant="outlined" color="error" onClick={() => signOut()}>
+                Log Out
+              </Button>
+              {isEditing ? (
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Button variant="outlined" color="secondary" onClick={handleEditToggle}>
+                    Cancel
+                  </Button>
+                  <Button variant="contained" color="primary" onClick={handleSaveChanges}>
+                    Save Changes
+                  </Button>
+                </Box>
+              ) : (
+                <Button variant="contained" color="primary" onClick={handleEditToggle}>
+                  Edit Profile
+                </Button>
+              )}
+            </Grid>
+          </Grid>
+
+      </Box>
     </Box>
   );
 };
 
-export default Profile;
+export default SettingsPage;

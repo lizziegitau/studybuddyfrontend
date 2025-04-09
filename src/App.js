@@ -2,7 +2,8 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from './protectedRoute';
 import Layout from './layout';
-import SignUp from './authentication/signUp';
+import LandingPage from './landingPage/landingPage';
+import Signup from './authentication/signUp';
 import SignUpVerification from './authentication/signUpVerify';
 import LogIn from './authentication/logIn';
 import SSOCallback from './authentication/ssoCallback';
@@ -19,7 +20,8 @@ function App() {
     <div className="App">
       <Router>
         <Routes>
-          <Route path="/" element={<SignUp />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/verify-signup" element={<SignUpVerification />} />
           <Route path="/login" element={<LogIn />} />
           <Route path="/sso-callback" element={<SSOCallback />} />
@@ -31,7 +33,7 @@ function App() {
               <Route path="/flashcards" element={<FlashCards />} />
               <Route path="/planner" element={<Planner />} />
               <Route path="/timer" element={<Timer />} />
-              <Route path="/account" element={<Profile />} />
+              <Route path="/settings" element={<Profile />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFoundPage />} />

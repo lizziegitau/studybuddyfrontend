@@ -179,6 +179,7 @@ function SignUpVerification() {
     const { signUp, isLoaded, setActive } = useSignUp();
     const [otp, setOtp] = useState("");
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const handleVerify = async (event) => {
         event.preventDefault();
@@ -186,6 +187,7 @@ function SignUpVerification() {
         if (!isLoaded) return;
         if (!otp.trim()) return setError("Please enter the OTP.");
 
+        setLoading(true);
         try {
             const result = await signUp.attemptVerification({ strategy: "email_code", code: otp });
 
@@ -197,6 +199,8 @@ function SignUpVerification() {
             }
         } catch (err) {
             setError(err.errors[0]?.message || "Verification failed. Please try again.");
+        } finally {
+          setLoading(false);
         }
     };
 
@@ -214,8 +218,8 @@ function SignUpVerification() {
                 {error && <Alert severity="error">{error}</Alert>}
                 <Box component="form" onSubmit={handleVerify}>
                 <OTP separator={<span>-</span>} value={otp} onChange={setOtp} length={6} />
-                    <Button type="submit" variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", width: "100%" }}>
-                        Verify & Continue
+                    <Button type="submit" variant="contained" disabled={loading} sx={{ backgroundColor: "#9381ff", color: "white", width: "100%" }}>
+                      {loading ? "Verifying..." : "Verify & Continue"}
                     </Button>
                 </Box>
             </div>

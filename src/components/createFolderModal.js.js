@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Typography, Modal, TextField, Button, IconButton } from "@mui/material";
-import { Close, Folder } from "@mui/icons-material";
+import { Folder } from "@mui/icons-material";
 
 const style = {
   position: "absolute",
@@ -27,9 +27,6 @@ function FlashcardFolderModal({ open, onClose }) {
           <Typography variant="h6" fontWeight="bold">
             Create a new folder
           </Typography>
-          <IconButton onClick={onClose}>
-            <Close />
-          </IconButton>
         </Box>
 
         <Typography variant="body1" mt={2} fontWeight="medium">
@@ -65,15 +62,14 @@ function FlashcardFolderModal({ open, onClose }) {
           ))}
         </Box>
 
-        <Button
-          fullWidth
-          variant="contained"
-          color="primary"
-          sx={{ mt: 3, borderRadius: "8px" }}
-          disabled={!folderName || !selectedColor}
-        >
-          Create Folder
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+          <Button variant="contained" color="primary">
+            Create Folder
+          </Button>
+          <Button variant="outlined" color="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

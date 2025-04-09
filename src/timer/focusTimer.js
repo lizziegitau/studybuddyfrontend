@@ -12,29 +12,80 @@ const StyledCard = styled(Card)({
   });
 
 
-function FocusTimer ({ duration, onReset }) {
+function FocusTimer ({ duration, onReset, handleBreakEnd }) {
+
+  const breakTime = 5 * 60;
 
     const initialTime = duration * 60;
-    const [timeLeft, setTimeLeft] = useState(initialTime);
-    const [isRunning, setIsRunning] = useState(true);
-  
-    useEffect(() => {
-        setTimeLeft(duration * 60);
-    }, [duration]);
+
+    const savedStartTime = localStorage.getItem("focusTimerStartTime");
+    const savedRunningState = localStorage.getItem("focusTimerRunning") === "true";
+    const savedBreakState = localStorage.getItem("isBreakTime") === "true";
+
+    const calculateTimeLeft = () => {
+        if (savedStartTime) {
+        const elapsedTime = Math.floor((Date.now() - parseInt(savedStartTime)) / 1000);
+        return Math.max((savedBreakState ? breakTime : initialTime) - elapsedTime, 0);
+        }
+        return savedBreakState ? breakTime : initialTime;
+    };
+    /* const calculateTimeLeft = () => 0; */
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
+    const [isRunning, setIsRunning] = useState(savedRunningState || true);
+    const [isBreakTime, setIsBreakTime] = useState(savedBreakState || false);
 
     useEffect(() => {
         if (!isRunning) return;
 
         const timer = setInterval(() => {
-            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+          setTimeLeft((prev) => {
+            if (prev > 0) return prev - 1;
+
+            if (!isBreakTime) {
+                setIsBreakTime(true);
+                localStorage.setItem("isBreakTime", true);
+                return breakTime;
+            } else {
+                setIsBreakTime(false);
+                handleBreakEnd();
+                localStorage.setItem("isBreakTime", false);
+                return initialTime;
+            }
+          }) 
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [isRunning]);
+    }, [isRunning, isBreakTime,breakTime, initialTime, handleBreakEnd]);
+
+    useEffect(() => {
+        if (!savedStartTime) {
+          localStorage.setItem("focusTimerStartTime", Date.now());
+        }
+      }, [savedStartTime]);
   
     const handleStartPause = () => {
-      setIsRunning(!isRunning);
-    };
+        if (!isRunning) {
+          localStorage.setItem("focusTimerStartTime", Date.now());
+        } else {
+          localStorage.removeItem("focusTimerStartTime");
+        }
+    
+        setIsRunning((prev) => {
+          localStorage.setItem("focusTimerRunning", !prev);
+          return !prev;
+        });
+      };
+    
+      const handleReset = () => {
+        setTimeLeft(initialTime);
+        setIsRunning(false);
+        setIsBreakTime(false);
+        localStorage.removeItem("focusTimerStartTime");
+        localStorage.removeItem("focusTimerRunning");
+        localStorage.removeItem("isBreakTime")
+        onReset();
+      };
   
     const formatTime = (seconds) => {
       const minutes = Math.floor(seconds / 60);
@@ -46,12 +97,13 @@ function FocusTimer ({ duration, onReset }) {
         <StyledCard>
             <CardContent>
             <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+            <Typography variant='h5' color='#9381FF'>{isBreakTime ? "Break Time" : "Focus Session"}</Typography>
                 <Box position="relative" display="inline-flex">
                     <Box sx={{ transform: "scaleX(-1)" }}>
                         <CircularProgress
-                            sx={{ color: '#B8B8FF'}}
+                            sx={{ color: isBreakTime ? "#9381FF" : "#B8B8FF" }}
                             variant="determinate"
-                            value={(timeLeft / initialTime) * 100}
+                            value={(timeLeft / (isBreakTime ? breakTime : initialTime)) * 100}
                             size={120}
                             thickness={4}
                         />
@@ -69,11 +121,12 @@ function FocusTimer ({ duration, onReset }) {
                         <Typography variant="h4">{formatTime(timeLeft)}</Typography>
                     </Box>
                 </Box>
+                <Typography>Up Next: {!isBreakTime ? "5 min Break" : "25 min Session"}</Typography>
                 <Box display="flex" gap={2}>
                     <Button variant="contained" sx={{ bgcolor: "#9381FF", ":hover": { bgcolor: "#B8B8FF" } }} onClick={handleStartPause}>
                         {isRunning ? "Pause" : "Start"}
                     </Button>
-                    <Button variant="contained" sx={{ bgcolor: "#9381FF", ":hover": { bgcolor: "#B8B8FF" } }} onClick={onReset}>
+                    <Button variant="contained" sx={{ bgcolor: "#9381FF", ":hover": { bgcolor: "#B8B8FF" } }} onClick={handleReset}>
                         Reset
                     </Button>
                 </Box>

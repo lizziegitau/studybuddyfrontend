@@ -15,7 +15,7 @@ import TaskIcon from '@mui/icons-material/Task';
 import StyleIcon from '@mui/icons-material/Style';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TimerIcon from '@mui/icons-material/Timer';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { CssBaseline } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -64,7 +64,7 @@ const menuItems = [
   { text: 'Flashcards', icon: <StyleIcon />, path: '/flashcards' },
   { text: 'Planner', icon: <CalendarMonthIcon />, path: '/planner' },
   { text: 'Study Timer', icon: <TimerIcon />, path: '/timer' },
-  { text: 'Account', icon: <AccountCircleIcon />, path: '/account' }
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
 ];
 
 function SideNav ({ isSidebarOpen, setIsSidebarOpen }) {

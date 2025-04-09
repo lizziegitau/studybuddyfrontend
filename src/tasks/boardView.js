@@ -3,7 +3,7 @@ import { Box, Card, CardContent,CardActionArea, Typography} from '@mui/material'
 import Grid from '@mui/material/Grid2';
 import AddIcon from '@mui/icons-material/Add';
 
-function BoardView({handleModalToggle, tasks}) {
+function BoardView({handleModalToggle, tasks, setCreateTaskModal}) {
     const taskColumns = [
         { status: 'To-Do', color: '#C6E7FF', border: '#133E87', tasks: tasks.filter(task => task.status === 'To-Do') },
         { status: 'In-Progress', color: '#FDDBBB', border: '#F96E2A', tasks: tasks.filter(task => task.status === 'In-Progress') },
@@ -51,7 +51,7 @@ function BoardView({handleModalToggle, tasks}) {
                                     </Card>
                                 </Box>
                                 ))}
-                                <Card sx={{border: '2px', borderStyle: 'solid', borderColor: column.border}}>
+                                <Card sx={{border: '2px', borderStyle: 'solid', borderColor: column.border, cursor: 'pointer'}} onClick={() => setCreateTaskModal(true)}>
                                     <Typography variant='h8'>
                                         <AddIcon sx={{margin: '5px'}} />
                                         Add New Task

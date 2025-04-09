@@ -5,7 +5,8 @@ import { styled } from '@mui/material/styles';
 import Grid from '@mui/material/Grid2';
 import FolderIcon from '@mui/icons-material/Folder';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import FlashcardsNoFolders from './flashcardsNoFolders'
+import FlashcardsNoFolders from './flashcardsNoFolders';
+import EditFolderModal from './editFolderModal';
 import { flashcards } from "../flashcardData";
 
 const DeckCard = styled(Card)(({ theme }) => ({
@@ -21,9 +22,9 @@ const DeckCard = styled(Card)(({ theme }) => ({
 }));
 
 function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
-
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedDeck, setSelectedDeck] = useState(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
 
     const uniqueDecks = Object.values(
         flashcards.reduce((acc, card) => {
@@ -51,7 +52,7 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
     };
 
     const handleEditFolder = () => {
-        console.log('Editing folder:', selectedDeck);
+        setEditModalOpen(true);
         handleMenuClose();
     };
 
@@ -60,10 +61,15 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
         handleMenuClose();
     };
 
+    const handleSaveEdit = (updatedFolder) => {
+        console.log('Updated folder:', updatedFolder);
+        setEditModalOpen(false);
+    };
+
     return (
         <div style={{padding: '10px'}}>
             <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", mb: 3 }}>
-                <Button variant="contained" sx={{ backgroundColor: "#9381FF" }}>
+                <Button variant="contained" sx={{ backgroundColor: "#9381FF" }} onClick={() => setOpenFlashcardModal(true)}>
                     Create a Folder
                 </Button>
             </Box>
@@ -98,8 +104,14 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
                 <MenuItem onClick={handleEditFolder}>Edit Folder</MenuItem>
                 <MenuItem onClick={handleDeleteFolder}>Delete Folder</MenuItem>
             </Menu>  
+            <EditFolderModal 
+                open={editModalOpen} 
+                onClose={() => setEditModalOpen(false)} 
+                folder={selectedDeck} 
+                onSave={handleSaveEdit} 
+            />
         </div>
-    )
+    );
 }
 
 export default FoldersLanding;
