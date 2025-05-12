@@ -132,7 +132,7 @@ const Flashcards = () => {
         duration={4000}
       />
       <Box sx={{ p: 3, minHeight: '100vh', backgroundColor: '#FFEEDD' }}>
-        <Box display='flex' alignItems='center' justifyContent='flex-start' mb={3}>
+        <Box display='flex' alignItems='center' justifyContent='flex-start' my={5}>
           <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >{user.username}'s Flashcards</Typography>
         </Box>
 

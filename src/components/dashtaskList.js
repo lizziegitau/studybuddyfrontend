@@ -25,7 +25,7 @@ function DashTaskList({ tasks }) {
     };
 
     return (
-        <Card sx={{ padding: 2, display: 'flex', flexDirection: 'column',  borderRadius: 2, boxShadow: 3 }}>
+        <Card sx={{ marginBottom: 2, padding: 2, display: 'flex', flexDirection: 'column',  borderRadius: 2, boxShadow: 3 }}>
             <CardContent sx={{ paddingBottom: "0px" }}>
             <Typography variant="h6" sx={{ marginBottom: 2 }}>Today's Task List</Typography>
 

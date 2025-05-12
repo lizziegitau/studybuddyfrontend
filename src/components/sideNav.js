@@ -1,7 +1,7 @@
 import '../App.css';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { styled, useTheme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import { 
   List, 
   IconButton, 
@@ -15,7 +15,6 @@ import {
   Tooltip,
   AppBar,
   Toolbar,
-  useMediaQuery,
   SwipeableDrawer
 } from '@mui/material';
 import MuiDrawer from '@mui/material/Drawer';
@@ -85,11 +84,10 @@ const menuItems = [
   { text: 'Study Timer', icon: <TimerIcon />, path: '/timer' }
 ];
 
-function SideNav({ isSidebarOpen, setIsSidebarOpen }) {
+function SideNav({ isSidebarOpen, setIsSidebarOpen, isMobile }) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const settingsOpen = Boolean(anchorEl);

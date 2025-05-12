@@ -113,8 +113,6 @@ function SessionProgress() {
         fetchSessions();
     }, [user?.id]);
 
-    console.log(sessions)
-
     useEffect(() => {
       if (sessions.length === 0 || dailyGoal <= 0) return;
       

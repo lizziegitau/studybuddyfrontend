@@ -153,7 +153,7 @@ function Timer() {
           severity={snackbar.severity}
           duration={4000}
       />
-      <Box sx={{ maxWidth: 900, width: "100%" }}>
+      <Box sx={{ maxWidth: 900, width: "100%", my: 5 }}>
         <Grid container direction="column" spacing={4}>
           <Grid size={{xs: 12}}>
             <Grid container spacing={3}>

@@ -10,6 +10,8 @@ import { useUser } from "@clerk/clerk-react";
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import SimpleSnackbar from '../components/snackbar';
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 
 dayjs.extend(isBetween);
 
@@ -17,6 +19,8 @@ function MainBoard() {
   const { user } = useUser();
   const today = dayjs();
   const sevenDaysFromToday = today.add(7, 'day');
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const [tasks, setTasks] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -156,7 +160,7 @@ function MainBoard() {
         severity={snackbar.severity}
         duration={4000}
       />
-      <Box display='flex' alignItems='center' justifyContent='flex-start' mb={3}>
+      <Box display='flex' alignItems='center' justifyContent='flex-start' my={3}>
         <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >
           {user.username}'s Dashboard
         </Typography>
@@ -164,14 +168,14 @@ function MainBoard() {
       
       <DashboardCard/>
       
-      <Grid container spacing={2} sx={{ my: 2 }}>
+      <Grid container columns={{ xs: 4, sm: 8, md: 12 }} spacing={isMobile ? 1 : 2} sx={{ my: isMobile ? 1 : 2, display: "flex", flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 1 : 2 }}>
         {taskCards.map((card, index) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
-            <Box sx={{ p: 3, textAlign: "center", backgroundColor: card.color }}>
-              <Typography variant="h6" sx={{ color: card.textColor, fontWeight: "bold" }}>
+          <Grid /* size={{ xs: 12, sm: 6, md: 4 }} */ xs={4} sm={isMobile ? 8 : 4} md={4} key={index} sx={{ flex: 1, width: "100%", minWidth: isMobile ? '100%' : 'auto' }}>
+            <Box sx={{ p: isMobile ? 2 : 3, textAlign: "center", backgroundColor: card.color, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <Typography variant="h6" sx={{ color: card.textColor, fontWeight: "bold", fontSize: isMobile ? '1.25rem' : '1.5rem' }}>
                 {card.value}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="body2" color="textSecondary" sx={{fontSize: isMobile ? '0.75rem' : '0.875rem'}}>
                 {card.label}
               </Typography>
             </Box>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../App.css';
-import { Typography, Button, Box, CircularProgress } from '@mui/material';
+import { Typography, Button, Box, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import SideBoard from '../components/sideBoard';
 import CalendarComponent from '../components/calendar';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,6 +11,8 @@ import SimpleSnackbar from '../components/snackbar';
 
 const Planner = () => {
     const { user } = useUser();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [openEventModal, setOpenEventModal] = useState(false);
     const [openDetailsModal, setOpenDetailsModal] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -82,7 +84,7 @@ const Planner = () => {
       };
 
     return (
-        <div style={{minHeight: '100vh'}} className='flex bg-background'>
+        <Box sx={{minHeight: '100vh', backgroundColor: '#FFEEDD', display: 'flex', flexDirection: {xs: 'column', md: 'row'}}}>
             <SimpleSnackbar
                 open={snackbar.open}
                 onClose={hideSnackbar}
@@ -90,12 +92,12 @@ const Planner = () => {
                 severity={snackbar.severity}
                 duration={4000}
             />
-            <div className='flex-1 p-6'>
-                <Box display='flex' alignItems='center' justifyContent='space-between' mb={3} pl={2}>
-                    <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >{user.username}'s Planner</Typography>
+            <Box sx={{flex: 1, pl: 2, my: 5}}>
+                <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', my: {xs: 2, md: 5}, pl: {xs: 1, md: 2}}}>
+                    <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize', fontSize: isMobile ? '1.2rem' : '1.5rem'}} >{user.username}'s Planner</Typography>
                     <Button variant='contained' sx={{ backgroundColor: "#9381FF" }} onClick={() => setOpenEventModal(true)} >
-                        <AddIcon />
-                        Create an Event
+                        <AddIcon fontSize={isMobile ? 'small' : 'medium'} />
+                        {isMobile ? 'New Event' : 'Create an Event'}
                     </Button>
                 </Box>
                 {loading ? (
@@ -105,10 +107,12 @@ const Planner = () => {
                 ) : (
                     <CalendarComponent setOpenEventModal={setOpenEventModal} setOpenDetailsModal={setOpenDetailsModal} setNewEvent={setNewEvent} events={events} setSelectedEvent={setSelectedEvent} />
                 )}
-            </div>
-            <div className="w-80 mt-10">
-                <SideBoard events={events} />
-            </div>
+            </Box>
+            {!isMobile && (
+                <Box sx={{ width: '320px', mt: 10 }}>
+                    <SideBoard events={events} />
+                </Box>
+            )}
             <CreateEventModal
              newEvent={newEvent} 
              setNewEvent={setNewEvent} 
@@ -130,7 +134,7 @@ const Planner = () => {
                 onEventDeleted={handleEventDeleted}
             />
 
-        </div>
+        </Box>
     )
 }
 

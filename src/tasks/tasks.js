@@ -149,7 +149,7 @@ function Tasks() {
                 duration={4000}
             />
             <div className="p-4">
-                <Box display='flex' alignItems='center' justifyContent='flex-start' mb={3} pl={2}>
+                <Box display='flex' alignItems='center' justifyContent='flex-start' my={5} pl={2}>
                     <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >
                         {user?.username || 'Your'}'s Tasks
                     </Typography>

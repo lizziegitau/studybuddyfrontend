@@ -6,7 +6,9 @@ function SettingsPage () {
 
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#FFEEDD", py: 4 }}>
-      <UserProfile/>
+      <div style={{margin: '28px'}}>
+        <UserProfile/>
+      </div>
     </Box>
   )
 }
