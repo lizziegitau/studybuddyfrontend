@@ -3,7 +3,6 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { Card, CardContent, Typography, Stack, IconButton } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { sessions } from "../sessionData";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
@@ -14,9 +13,8 @@ const getWeekRange = (startOfWeek) => {
   return `${dayjs(startOfWeek).format("MMM D")} - ${endOfWeek.format("MMM D")}`;
 };
 
-const StudyBarChart = () => {
-
-  const [currentWeek, setCurrentWeek] = useState(dayjs("2025-03-02"));
+const StudyBarChart = ({ sessions}) => {
+  const [currentWeek, setCurrentWeek] = useState(dayjs().startOf('week'));
 
   const filteredSessions = sessions.filter((session) => {
     const sessionDate = dayjs(session.sessionDate);
@@ -31,7 +29,7 @@ const StudyBarChart = () => {
     const date = dayjs(currentWeek).add(index, "day").format("YYYY-MM-DD");
     const totalHours =
       filteredSessions
-        .filter((session) => session.sessionDate === date)
+        .filter((session) => dayjs(session.sessionDate).format("YYYY-MM-DD") === date)
         .reduce((acc, session) => acc + session.sessionDuration / 60, 0) || 0;
     return { day, hours: totalHours };
   });
@@ -41,7 +39,7 @@ const StudyBarChart = () => {
   };
 
   return (
-    <Card sx={{ padding: 2, borderRadius: 2, boxShadow: 3 }}>
+    <Card sx={{ backgroundColor: "#F8F7FF", padding: 2, borderRadius: 2, boxShadow: 3 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
           Time Spent

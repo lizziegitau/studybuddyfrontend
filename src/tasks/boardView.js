@@ -1,13 +1,15 @@
 import '../App.css';
-import { Box, Card, CardContent,CardActionArea, Typography} from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton} from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function BoardView({handleModalToggle, tasks, setCreateTaskModal}) {
+function BoardView({handleModalToggle, tasks, setCreateTaskModal, onDeleteTask}) {
     const taskColumns = [
-        { status: 'To-Do', color: '#C6E7FF', border: '#133E87', tasks: tasks.filter(task => task.status === 'To-Do') },
-        { status: 'In-Progress', color: '#FDDBBB', border: '#F96E2A', tasks: tasks.filter(task => task.status === 'In-Progress') },
-        { status: 'Done', color: '#B8B8FF', border: '#493D9E', tasks: tasks.filter(task => task.status === 'Done') }
+        { status: 'To-Do', color: '#C6E7FF', border: '#133E87', tasks: tasks.filter(task => task.taskStatus === 'To-Do') },
+        { status: 'In-Progress', color: '#FDDBBB', border: '#F96E2A', tasks: tasks.filter(task => task.taskStatus === 'In-Progress') },
+        { status: 'Completed', color: '#B8B8FF', border: '#493D9E', tasks: tasks.filter(task => task.taskStatus === 'Completed') }
     ];
 
     const priorityColors = {
@@ -15,6 +17,16 @@ function BoardView({handleModalToggle, tasks, setCreateTaskModal}) {
         Medium: '#FDDBBB',
         Low: '#C7FFD8'
     };
+
+        const handleEditClick = (task) => {
+            handleModalToggle(task);
+        };
+    
+        const handleDeleteClick = (taskId) => {
+            if (onDeleteTask) {
+                onDeleteTask(taskId);
+            }
+        };
 
     return (
         <div className='task-board-container'>
@@ -31,23 +43,42 @@ function BoardView({handleModalToggle, tasks, setCreateTaskModal}) {
                                 </Typography>
                             </Box>
                             {column.tasks.map((task) => (
-                                <Box key={task.id} sx={{ margin: 2, backgroundColor: 'white', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)' }}> 
-                                    <Card onClick={() => handleModalToggle(task)}>
-                                        <CardActionArea>
-                                            <CardContent>
-                                                <Typography sx={{ fontWeight: 'bold', fontSize: '18px', padding: '5px' }}>
-                                                    {task.title}
+                                <Box key={task.taskId}> 
+                                    <Card sx={{ 
+                                            margin: 2, 
+                                            backgroundColor: 'white', 
+                                            boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+                                            transition: 'transform 0.2s, box-shadow 0.2s',
+                                            '&:hover': { 
+                                                bgcolor: '#F8F7FF',
+                                                transform: 'translateY(-4px)',
+                                                boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.15)'
+                                            }
+                                        }}
+                                    >
+                                        <CardContent sx={{position: 'relative'}}>
+                                            <Box sx={{position: 'absolute', top: '5px', right: '5px', display: 'flex', gap: 1, opacity: 0, transition: 'opacity 0.2s ease', '.MuiCard-root:hover &': {opacity: 1} }}>
+                                                <IconButton size="small" onClick={() => {handleEditClick(task)}}>
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                                <IconButton size="small" color="error" onClick={() => {handleDeleteClick(task.taskId)}}>
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+                                            <Typography sx={{ fontWeight: 'bold', fontSize: '18px', padding: '5px', paddingTop: '20px' }}>
+                                                {task.taskDescription}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                            {new Date(task.dueDate).toLocaleDateString(undefined, {
+                                                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+                                            })}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 1 }}>
+                                                <Typography variant='body2' sx={{ backgroundColor: priorityColors[task.priority], color: 'black', padding: '3px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
+                                                    {task.priority}
                                                 </Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {task.dueDate}
-                                                </Typography>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 1 }}>
-                                                    <Typography variant='body2' sx={{ backgroundColor: priorityColors[task.priority], color: 'black', padding: '3px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
-                                                        {task.priority}
-                                                    </Typography>
-                                                </Box>
-                                            </CardContent>
-                                        </CardActionArea>
+                                            </Box>
+                                        </CardContent>
                                     </Card>
                                 </Box>
                                 ))}

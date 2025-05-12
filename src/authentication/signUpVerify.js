@@ -3,9 +3,9 @@ import { useSignUp } from "@clerk/clerk-react";
 import PropTypes from 'prop-types';
 import { Input as BaseInput } from '@mui/base/Input';
 import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import { styled } from "@mui/system";
+import SimpleSnackbar from '../components/snackbar';
 
 const InputElement = styled('input')(
     () => `
@@ -178,14 +178,39 @@ function OTP({ separator, length, value, onChange }) {
 function SignUpVerification() {
     const { signUp, isLoaded, setActive } = useSignUp();
     const [otp, setOtp] = useState("");
-    const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: '',
+      severity: 'info',
+  });
+
+    const showSnackbar = (message, severity = 'error') => {
+      setSnackbar({
+          open: true,
+          message,
+          severity,
+      });
+    };
+
+    const hideSnackbar = () => {
+        setSnackbar(prev => ({
+            ...prev,
+            open: false,
+        }));
+    };
 
     const handleVerify = async (event) => {
         event.preventDefault();
 
-        if (!isLoaded) return;
-        if (!otp.trim()) return setError("Please enter the OTP.");
+        if (!isLoaded) {
+          showSnackbar("Clerk is still loading. Please wait.", "error");
+          return;
+        }
+        if (!otp.trim()) {
+          showSnackbar("Please enter the otp.", "error");
+          return false;
+        }
 
         setLoading(true);
         try {
@@ -193,12 +218,16 @@ function SignUpVerification() {
 
             if (result.status === "complete") {
                 await setActive({ session: result.createdSessionId });
-                window.location.href = "/dashboard";
+                showSnackbar("Sign up successful! Redirecting...", "success");
+                setTimeout(() => {
+                    window.location.href = "/dashboard";
+                }, 1500);
             } else {
-                setError("Invalid OTP. Please try again.");
+                showSnackbar("Invalid OTP. Please try again.", "error");
             }
         } catch (err) {
-            setError(err.errors[0]?.message || "Verification failed. Please try again.");
+          const errorMessage = err.errors[0]?.message || "Verification failed. Please try again.";
+            showSnackbar(errorMessage);
         } finally {
           setLoading(false);
         }
@@ -208,6 +237,14 @@ function SignUpVerification() {
 
     return (
         <div className="signup">
+          <SimpleSnackbar
+            open={snackbar.open}
+            onClose={hideSnackbar}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            duration={4000}
+          />
+
             <div className="imageContainer">
                 <img alt='StudyBuddy Logo' src="/images/studybuddylargelogo.png" className="logo" />
                 <img alt='studying pic' src="/images/studying.png" className="illustration" />
@@ -215,7 +252,6 @@ function SignUpVerification() {
             </div>
             <div className="formContainer">
                 <h1>Verify Your Email</h1>
-                {error && <Alert severity="error">{error}</Alert>}
                 <Box component="form" onSubmit={handleVerify}>
                 <OTP separator={<span>-</span>} value={otp} onChange={setOtp} length={6} />
                     <Button type="submit" variant="contained" disabled={loading} sx={{ backgroundColor: "#9381ff", color: "white", width: "100%" }}>

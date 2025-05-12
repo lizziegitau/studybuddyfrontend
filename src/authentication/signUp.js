@@ -11,8 +11,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
-import Alert from "@mui/material/Alert";
 import { useSignUp } from "@clerk/clerk-react";
+import SimpleSnackbar from '../components/snackbar';
 
 function SignUp () {
 
@@ -21,21 +21,49 @@ function SignUp () {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'info',
+    });
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+    const showSnackbar = (message, severity = 'error') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        });
+    };
+
+    const hideSnackbar = () => {
+        setSnackbar(prev => ({
+            ...prev,
+            open: false,
+        }));
+    };
 
     const handleSignUp = async (event) => {
         event.preventDefault(); 
     
         if (!isLoaded) {
-            setError("Clerk is still loading. Please wait.");
+            showSnackbar("Clerk is still loading. Please wait.", "error");
             return;
         }
         
-        if (!name.trim()) return setError("Name is required.");
-        if (!email.includes("@")) return setError("Invalid email format.");
-        if (password.length < 6) return setError("Password must be at least 6 characters.");
+        if (!name.trim()) {
+            showSnackbar("Please enter your name.", "error");
+            return false;
+        }   
+        if (!email.includes("@")) {
+            showSnackbar("Please enter your email.", "error");
+            return false;
+        }   
+        if (password.length < 6) {
+            showSnackbar("Please enter your password.", "error");
+            return false;
+        }   
     
         try {
             await signUp.create({
@@ -46,32 +74,46 @@ function SignUp () {
 
           await signUp.prepareVerification({ strategy: "email_code" });
 
-        window.location.href = "/verify-signup";
+          showSnackbar("Verifying your email...", "info");
+          setTimeout(() => {
+              window.location.href = "/verify-signup";
+          }, 1500);
     
         } catch (err) {
-          setError(err.errors[0]?.message || "Sign-in failed. Please try again.");
+            const errorMessage = err.errors[0]?.message || "Sign-in failed. Please try again."
+          showSnackbar(errorMessage, "error");
         }
       };
 
       const handleGoogleSignUp = async () => {
         if (!isLoaded) {
-            setError("Clerk is still loading. Please wait.");
+            showSnackbar("Clerk is still loading. Please wait.", "error");
             return;
         }
         
         try {
-            await signUp.authenticateWithRedirect({
-                strategy: "oauth_google",
-                redirectUrl: "/sso-callback",
-            });
+            showSnackbar("Redirecting to Google login...", "info");
+            setTimeout(async () => {
+                await signUp.authenticateWithRedirect({
+                    strategy: "oauth_google",
+                    redirectUrl: "/sso-callback",
+                });
+            }, 1000);
         } catch (err) {
             console.error("Google sign up error:", err);
-            setError("Failed to initiate Google sign up. Please try again.");
+            showSnackbar("Failed to initiate Google sign up. Please try again.", "error");
         }
     };
 
     return (
         <div className="signup">
+            <SimpleSnackbar
+                open={snackbar.open}
+                onClose={hideSnackbar}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                duration={4000}
+            />
             <div className="imageContainer">
                 <img alt='StudyBuddy Logo' src="/images/studybuddylargelogo.png" className="logo" />
                     <img alt='studying pic' src="/images/studying.png" className="illustration" />
@@ -86,7 +128,6 @@ function SignUp () {
                 </div>
                 <h3>or sign up with your email address</h3>
                 <div className="inputContainer">
-                    {error && <Alert severity="error">{error}</Alert>}
                     <Box 
                         component="form" 
                         sx={{ '& .MuiTextField-root': { display: "flex", flexDirection: "column", gap: 2, width: "100%", alignItems: "center", maxWidth: "400px" } }} 

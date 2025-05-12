@@ -1,7 +1,9 @@
 import '../App.css';
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { CircularProgress, Button, Typography, Box, Card, CardContent } from "@mui/material";
 import { styled } from "@mui/system";
+import { useUser } from "@clerk/clerk-react";
+import SimpleSnackbar from '../components/snackbar';
 
 const StyledCard = styled(Card)({
     backgroundColor: "#F8F7FF",
@@ -11,16 +13,24 @@ const StyledCard = styled(Card)({
     padding: "20px",
   });
 
+function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
 
-function FocusTimer ({ duration, onReset, handleBreakEnd }) {
-
-  const breakTime = 5 * 60;
-
+    const { user } = useUser();
+    const breakTime = 5 * 60;
     const initialTime = duration * 60;
-
     const savedStartTime = localStorage.getItem("focusTimerStartTime");
     const savedRunningState = localStorage.getItem("focusTimerRunning") === "true";
     const savedBreakState = localStorage.getItem("isBreakTime") === "true";
+
+    const [accumulatedTime, setAccumulatedTime] = useState(
+      parseInt(localStorage.getItem("accumulatedFocusTime") || "0")
+    );
+    const [lastSavedTime, setLastSavedTime] = useState(
+      parseInt(localStorage.getItem("lastSavedFocusTime") || "0")
+    );
+    const [sessionStartedAt] = useState(
+      localStorage.getItem("sessionStartedAt") || new Date().toISOString()
+    );
 
     const calculateTimeLeft = () => {
         if (savedStartTime) {
@@ -29,27 +39,100 @@ function FocusTimer ({ duration, onReset, handleBreakEnd }) {
         }
         return savedBreakState ? breakTime : initialTime;
     };
-    /* const calculateTimeLeft = () => 0; */
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
     const [isRunning, setIsRunning] = useState(savedRunningState || true);
     const [isBreakTime, setIsBreakTime] = useState(savedBreakState || false);
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: '',
+      severity: 'info',
+    });
+
+    const showSnackbar = (message, severity = 'error') => {
+    setSnackbar({
+        open: true,
+        message,
+        severity,
+    });
+    };
+
+    const hideSnackbar = () => {
+    setSnackbar(prev => ({
+        ...prev,
+        open: false,
+    }));
+    };
+
+    const saveSessionData = async (minutesToSave) => {
+      
+      try {
+        if (minutesToSave <= 0 || isBreakTime) return;
+  
+        const payload = {
+          userId: user.id,
+          sessionDate: sessionStartedAt.split('T')[0],
+          sessionDuration: minutesToSave,
+          sessionTaskIds: taskIds
+        };
+  
+        const response = await fetch('/api/study-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to create session');
+        }
+  
+        const savedSession = await response.json();
+
+        localStorage.setItem("lastSessionId", savedSession.sessionId);
+  
+        setLastSavedTime(accumulatedTime);
+        localStorage.setItem("lastSavedFocusTime", accumulatedTime.toString());
+
+        showSnackbar("Session saved successfully!", "success");
+  
+      } catch (error) {
+        console.error('Error saving incremental session:', error);
+        showSnackbar("Failed to save session!", "error");
+      }
+    };
 
     useEffect(() => {
         if (!isRunning) return;
 
+        if (!localStorage.getItem("sessionStartedAt")) {
+          localStorage.setItem("sessionStartedAt", new Date().toISOString());
+        }
+
         const timer = setInterval(() => {
           setTimeLeft((prev) => {
-            if (prev > 0) return prev - 1;
+            if (prev > 0) {
+              if (!isBreakTime) {
+                setAccumulatedTime(acc => {
+                  const newAcc = acc + 1;
+                  localStorage.setItem("accumulatedFocusTime", newAcc.toString());
+                  return newAcc;
+                });
+              }
+              return prev - 1;
+            }
 
             if (!isBreakTime) {
                 setIsBreakTime(true);
                 localStorage.setItem("isBreakTime", true);
+                showSnackbar("Break time started! Relax for 5 mins.", "info");
                 return breakTime;
             } else {
                 setIsBreakTime(false);
                 handleBreakEnd();
                 localStorage.setItem("isBreakTime", false);
+                showSnackbar("Focus session resumed. Let's go!", "success");
                 return initialTime;
             }
           }) 
@@ -57,6 +140,39 @@ function FocusTimer ({ duration, onReset, handleBreakEnd }) {
 
         return () => clearInterval(timer);
     }, [isRunning, isBreakTime,breakTime, initialTime, handleBreakEnd]);
+
+    useEffect(() => {
+      if (!isRunning || isBreakTime) return;
+  
+      Math.floor((accumulatedTime - lastSavedTime) / 60);
+    }, [accumulatedTime, lastSavedTime, isRunning, isBreakTime]);
+  
+    useEffect(() => {
+      const handleBeforeUnload = () => {
+        const minutesToSave = Math.floor((accumulatedTime - lastSavedTime) / 60);
+        if (minutesToSave > 0 && !isBreakTime) {
+          const payload = {
+            userId: user.id,
+            sessionDate: sessionStartedAt.split('T')[0],
+            sessionDuration: minutesToSave,
+          };
+  
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('/api/study-session', JSON.stringify(payload));
+          } else {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/study-session', false);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(payload));
+          }
+          localStorage.removeItem("accumulatedFocusTime");
+          localStorage.removeItem("lastSavedFocusTime");
+        }
+      };
+  
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [accumulatedTime, lastSavedTime, isBreakTime, user.id, sessionStartedAt]);
 
     useEffect(() => {
         if (!savedStartTime) {
@@ -73,19 +189,33 @@ function FocusTimer ({ duration, onReset, handleBreakEnd }) {
     
         setIsRunning((prev) => {
           localStorage.setItem("focusTimerRunning", !prev);
+          showSnackbar(!prev ? "Timer started!" : "Timer paused.", "info");
           return !prev;
         });
       };
     
-      const handleReset = () => {
+      const handleReset = async () => {
+        const minutesToSave = Math.floor((accumulatedTime - lastSavedTime) / 60);
+        if (minutesToSave > 0 && !isBreakTime) {
+          await saveSessionData(minutesToSave);
+        }
+      
         setTimeLeft(initialTime);
         setIsRunning(false);
         setIsBreakTime(false);
+        setAccumulatedTime(0);
+        setLastSavedTime(0);
         localStorage.removeItem("focusTimerStartTime");
         localStorage.removeItem("focusTimerRunning");
-        localStorage.removeItem("isBreakTime")
+        localStorage.removeItem("isBreakTime");
+        localStorage.removeItem("accumulatedFocusTime");
+        localStorage.removeItem("lastSavedFocusTime");
+        localStorage.removeItem("sessionStartedAt");
         onReset();
+
+        showSnackbar("Timer reset successfully!", "success");
       };
+      
   
     const formatTime = (seconds) => {
       const minutes = Math.floor(seconds / 60);
@@ -94,6 +224,14 @@ function FocusTimer ({ duration, onReset, handleBreakEnd }) {
     };
 
     return (
+      <div>
+        <SimpleSnackbar
+            open={snackbar.open}
+            onClose={hideSnackbar}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            duration={4000}
+        />
         <StyledCard>
             <CardContent>
             <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
@@ -132,7 +270,8 @@ function FocusTimer ({ duration, onReset, handleBreakEnd }) {
                 </Box>
             </Box>
             </CardContent>
-            </StyledCard>
+          </StyledCard>
+      </div>
     );
 };
 

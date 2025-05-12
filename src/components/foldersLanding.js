@@ -1,5 +1,5 @@
 import '../App.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, IconButton, Card, Menu, MenuItem, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Grid from '@mui/material/Grid2';
@@ -7,7 +7,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FlashcardsNoFolders from './flashcardsNoFolders';
 import EditFolderModal from './editFolderModal';
-import { flashcards } from "../flashcardData";
+import SimpleSnackbar from './snackbar';
 
 const DeckCard = styled(Card)(({ theme }) => ({
     width: 220,
@@ -21,34 +21,50 @@ const DeckCard = styled(Card)(({ theme }) => ({
     position: 'relative'
 }));
 
-function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
+function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal, folders, onFolderDelete }) {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedDeck, setSelectedDeck] = useState(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
+    const [localFolders, setLocalFolders] = useState(folders || []);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'info',
+    });
 
-    const uniqueDecks = Object.values(
-        flashcards.reduce((acc, card) => {
-          if (!acc[card.deckId]) {
-            acc[card.deckId] = {
-                deckId: card.deckId,
-                deckName: card.deckName,
-                lastReviewed: card.lastReviewed || 'Never',
-                cardCount: 0
-            };
-          }
-            acc[card.deckId].cardCount += 1;
-            return acc;
-        }, {})
-    );
+    const showSnackbar = (message, severity = 'error') => {
+    setSnackbar({
+        open: true,
+        message,
+        severity,
+    });
+    };
+
+    const hideSnackbar = () => {
+    setSnackbar(prev => ({
+        ...prev,
+        open: false,
+    }));
+    };
+
+    useEffect(() => {
+        setLocalFolders(folders || []);
+    }, [folders]);
+
+    const uniqueDecks = localFolders.map(deck => ({
+        deckId: deck.deckId,
+        deckName: deck.deckName,
+        cardCount: deck.flashcardCount || 0
+    }));
 
     const handleMenuOpen = (event, deck) => {
+        event.stopPropagation();
         setMenuAnchor(event.currentTarget);
         setSelectedDeck(deck);
     };
 
     const handleMenuClose = () => {
         setMenuAnchor(null);
-        setSelectedDeck(null);
     };
 
     const handleEditFolder = () => {
@@ -56,25 +72,85 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
         handleMenuClose();
     };
 
-    const handleDeleteFolder = () => {
-        console.log('Deleting folder:', selectedDeck);
+    const handleDeleteFolder = async () => {
+        if (!selectedDeck || !selectedDeck.deckId) {
+            showSnackbar("Cannot delete folder: Invalid folder ID.", "error");
+            handleMenuClose();
+            return;
+        }
+        try {
+            const response = await fetch(`api/decks/${selectedDeck.deckId}`, {
+                method: 'DELETE',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to delete folder');
+            }
+            setLocalFolders(prev => prev.filter(deck => deck.deckId !== selectedDeck.deckId));
+
+            if (onFolderDelete) {
+                onFolderDelete(selectedDeck.deckId);
+            }
+            showSnackbar("Folder deleted successfully.", "success");
+
+        } catch (error) {
+            console.error('Error deleting folder:', error);
+            showSnackbar("Error deleting folder.", "error");
+        }
         handleMenuClose();
     };
 
-    const handleSaveEdit = (updatedFolder) => {
-        console.log('Updated folder:', updatedFolder);
+    const handleSaveEdit = async (updatedFolder) => {
+        if (!updatedFolder || !updatedFolder.deckId) {
+            showSnackbar("Cannot update folder: Invalid folder ID.", "error");
+            return;
+        }
+        try {
+            const response = await fetch(`api/decks/${updatedFolder.deckId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deckName: updatedFolder.deckName }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update folder');
+            }
+
+            setLocalFolders(prev => 
+                prev.map(deck => 
+                    deck.deckId === updatedFolder.deckId 
+                        ? { ...deck, deckName: updatedFolder.deckName } 
+                        : deck
+                )
+            );
+
+            showSnackbar("Folder updated successfully.", "success");
+            
+        } catch (error) {
+            showSnackbar("Error updating folder.", "error");
+            console.error('Error updating folder:', error);
+        }
         setEditModalOpen(false);
     };
 
     return (
         <div style={{padding: '10px'}}>
+            <SimpleSnackbar
+                open={snackbar.open}
+                onClose={hideSnackbar}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                duration={4000}
+            />
             <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: "center", mb: 3 }}>
                 <Button variant="contained" sx={{ backgroundColor: "#9381FF" }} onClick={() => setOpenFlashcardModal(true)}>
                     Create a Folder
                 </Button>
             </Box>
             <div>
-                {uniqueDecks.length > 0 ? (
+            {uniqueDecks.length > 0 ? (
                     <Grid container spacing={3}>
                         {uniqueDecks.map((deck) => (
                             <Grid size={{ xs: 6, md: 3}} key={deck.deckId}>
@@ -88,9 +164,6 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal }) {
                                     <Typography fontWeight="bold" mt={1}>{deck.deckName}</Typography>
                                     <Typography variant="body2" color="textSecondary">
                                         {deck.cardCount} cards
-                                    </Typography>
-                                    <Typography variant="body2" color="textSecondary">
-                                        Last Reviewed: {deck.lastReviewed}
                                     </Typography>
                                 </DeckCard>
                             </Grid>

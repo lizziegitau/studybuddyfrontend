@@ -1,18 +1,10 @@
 import '../App.css'
 import { useState } from 'react';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputLabel from '@mui/material/InputLabel';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControl from '@mui/material/FormControl';
+import { Box, TextField, IconButton, OutlinedInput, InputLabel, InputAdornment, FormControl, Link, Button } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import Button from '@mui/material/Button';
-import Link from '@mui/material/Link';
-import Alert from "@mui/material/Alert";
 import { useSignIn } from "@clerk/clerk-react";
+import SimpleSnackbar from '../components/snackbar';
 
 function LogIn () {
 
@@ -20,9 +12,29 @@ function LogIn () {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'info',
+    });
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+    const showSnackbar = (message, severity = 'error') => {
+        setSnackbar({
+            open: true,
+            message,
+            severity,
+        });
+    };
+
+    const hideSnackbar = () => {
+        setSnackbar(prev => ({
+            ...prev,
+            open: false,
+        }));
+    };
+
 
     if (!isLoaded) return null;
 
@@ -30,12 +42,12 @@ function LogIn () {
         event.preventDefault();
 
         if (!email) {
-            setError("Please enter your email.");
+            showSnackbar("Please enter your email.", "error");
             return;
           }
           
           if (!password) {
-            setError("Please enter your password.");
+            showSnackbar("Please enter your password.", "error");
             return;
           }
     
@@ -50,18 +62,29 @@ function LogIn () {
             });
     
             if (result.status === "complete") {
-                window.location.href = "/dashboard";
+                showSnackbar("Login successful! Redirecting...", "success");
+                setTimeout(() => {
+                    window.location.href = "/dashboard";
+                }, 1500);
             } else {
-                setError("Invalid credentials. Please try again.");
+                showSnackbar("Invalid credentials. Please try again.", "error");
             }
         } catch (err) {
-            setError(err.errors?.[0]?.long_message || "Sign-in failed. Please try again.");
+            const errorMessage = err.errors?.[0]?.long_message || "Sign-in failed. Please try again.";
+            showSnackbar(errorMessage, "error");
         }
-    };
-    
+    };   
 
     return (
         <div className="signup">
+            <SimpleSnackbar
+                open={snackbar.open}
+                onClose={hideSnackbar}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                duration={4000}
+            />
+
             <div className="imageContainer">
                 <img alt='StudyBuddy Logo' src="/images/studybuddylargelogo.png" className="logo" />
                     <img alt='studying pic' src="/images/studying.png" className="illustration" />
@@ -70,13 +93,12 @@ function LogIn () {
             <div className="formContainer">
                 <h1>Welcome Back!</h1>
                 <div className="socialContainer">
-                    <Button variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", borderRadius: "20px", width: "100%"}} onClick={() => signIn.authenticateWithRedirect({ strategy: "oauth_google", redirectUrl: "/dashboard", })}>
+                    <Button variant="contained" sx={{ backgroundColor: "#9381ff", color: "white", borderRadius: "20px", width: "100%"}} onClick={() => {signIn.authenticateWithRedirect({ strategy: "oauth_google", redirectUrl: "/dashboard", }); showSnackbar("Redirecting to Google login...", "info");}}>
                         Log In with Google
                     </Button>
                 </div>
                 <h3>or sign in with your email address</h3>
                 <div className="inputContainer">
-                {error && <Alert severity="error">{error}</Alert>}
                     <Box 
                         component="form" 
                         sx={{ '& .MuiTextField-root': { display: "flex", flexDirection: "column", gap: 2, width: "100%", alignItems: "center", maxWidth: "400px" } }} 

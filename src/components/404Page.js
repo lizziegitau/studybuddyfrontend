@@ -26,7 +26,6 @@ const randomPun = NotFoundPuns[Math.floor(Math.random() * NotFoundPuns.length)];
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-center h-screen bg-[#FFF4EE]">
-      {/* Left Section - Illustration */}
       <div className="flex-[2] flex justify-center">
         <img
           src="/images/404pic.png"
@@ -35,13 +34,11 @@ const randomPun = NotFoundPuns[Math.floor(Math.random() * NotFoundPuns.length)];
         />
       </div>
 
-      {/* Right Section - Text Content */}
       <div className="flex-1 text-center md:text-left px-6 md:px-12">
         <h1 className="text-[110px] font-bold text-[#9381FF] leading-none">404</h1>
         <h2 className="text-[40px] font-semibold text-[#9381FF]">Page not found</h2>
         <p className="text-gray-600 mt-2 text-[24px]">{randomPun}</p>
 
-        {/* Go Home Button */}
         <Button
           variant="contained"
           sx={{
@@ -54,7 +51,7 @@ const randomPun = NotFoundPuns[Math.floor(Math.random() * NotFoundPuns.length)];
             padding: "8px 20px",
             borderRadius: "8px",
           }}
-          onClick={() => (window.location.href = "/dashboard")} // Redirects to dashboard
+          onClick={() => (window.location.href = "/dashboard")}
         >
           Back To Dashboard
         </Button>

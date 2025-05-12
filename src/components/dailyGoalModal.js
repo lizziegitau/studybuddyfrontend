@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import '../App.css'
-import { Box, InputLabel, MenuItem, FormControl, Select, Typography, Modal, Button  } from '@mui/material';
+import { Box, InputLabel, MenuItem, FormControl, Select, Typography, Modal, Button, CircularProgress } from '@mui/material';
+import SimpleSnackbar from './snackbar';
 
 const style = {
   position: 'absolute',
@@ -14,9 +15,30 @@ const style = {
   borderRadius: '10px',
 };
 
-function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal }) {
+function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal, userId }) {
 
     const [tempGoal, setTempGoal] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: '',
+      severity: 'info',
+    });
+  
+    const showSnackbar = (message, severity = 'error') => {
+      setSnackbar({
+          open: true,
+          message,
+          severity,
+      });
+    };
+  
+    const hideSnackbar = () => {
+      setSnackbar(prev => ({
+          ...prev,
+          open: false,
+      }));
+    };
 
     useEffect(() => {
         if (open) {
@@ -24,13 +46,54 @@ function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal }) {
         }
       }, [open, dailyGoal]);
 
-    const handleSave = () => {
-        setDailyGoal(tempGoal);
-        onClose();
+      const handleSave = async () => {
+        if (!userId || !tempGoal) {
+          showSnackbar("Please fill all required fields.", "error");
+          return;
+        }
+    
+        setIsSubmitting(true);
+    
+        try {
+          const response = await fetch('/api/daily-goal', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: userId,
+              dailyGoalMinutes: tempGoal,
+            }),
+          });
+    
+          if (!response.ok) {
+            throw new Error('Failed to save daily goal');
+          }
+    
+          const data = await response.json();
+          setDailyGoal(data.dailyGoalMinutes);
+          showSnackbar("Daily goal saved successfully!", "success");
+          setTimeout(() => {
+            onClose();
+          }, 1500);
+        } catch (error) {
+          console.error('Error saving goal:', error);
+          showSnackbar("Failed to save goal. Please try again.", "error");
+          alert('Failed to save goal. Please try again.');
+        } finally {
+          setIsSubmitting(false);
+        }
       };
 
     return (
         <div>
+          <SimpleSnackbar
+            open={snackbar.open}
+            onClose={hideSnackbar}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            duration={4000}
+          />
             <Modal open={open} onClose={onClose}>
                 <Box sx={style}>
                     <Typography variant="h6" sx={{ mb: 2 }}>Edit your daily goal</Typography>
@@ -54,7 +117,7 @@ function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal }) {
                     </FormControl>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Button variant="contained" color="primary" onClick={handleSave}>
-                            Save
+                          {isSubmitting ? <CircularProgress size={24} /> : 'Save'}
                         </Button>
                         <Button variant="outlined" color="secondary" onClick={onClose}>
                             Cancel
@@ -66,4 +129,4 @@ function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal }) {
     )
 }
 
-export default DailyGoalModal
+export default DailyGoalModal;

@@ -2,14 +2,15 @@ import '../App.css';
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Chip, Card, CardContent } from '@mui/material';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import PushPinIcon from '@mui/icons-material/PushPin';
-import { format } from 'date-fns';
+import { addDays, isWithinInterval } from 'date-fns';
 
 function DashTaskList({ tasks }) {
 
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = new Date();
+    const sevenDaysFromToday = addDays(today, 7);
 
-    const todayTasks = tasks.filter(task => 
-        (task.status === 'To-Do' || task.status === 'In-Progress') && task.dueDate === today
+    const upcomingTasks = tasks.filter(task => 
+        (task.taskStatus === 'To-Do' || task.taskStatus === 'In-Progress') && isWithinInterval(new Date(task.dueDate), { start: today, end: sevenDaysFromToday })
     );
 
     const statusIcons = {
@@ -28,30 +29,31 @@ function DashTaskList({ tasks }) {
             <CardContent sx={{ paddingBottom: "0px" }}>
             <Typography variant="h6" sx={{ marginBottom: 2 }}>Today's Task List</Typography>
 
-            {/* Task Table */}
             <TableContainer sx={{ minHeight: "auto" }}>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>Task Name</TableCell>
                             <TableCell>Status</TableCell>
+                            <TableCell>Due Date</TableCell>
                             <TableCell>Priority</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {todayTasks.length > 0 ? (
-                            todayTasks.map((task) => (
+                        {upcomingTasks.length > 0 ? (
+                            upcomingTasks.map((task) => (
                                 <TableRow 
-                                    key={task.id} 
+                                    key={task.taskId} 
                                     hover 
                                 >
-                                    <TableCell>{task.title}</TableCell>
+                                    <TableCell>{task.taskDescription}</TableCell>
                                     <TableCell>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            {statusIcons[task.status]} 
-                                            <Typography variant="body2">{task.status}</Typography>
+                                            {statusIcons[task.taskStatus]} 
+                                            <Typography variant="body2">{task.taskStatus}</Typography>
                                         </Box>
                                     </TableCell>
+                                    <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
                                     <TableCell>
                                         <Chip 
                                             label={priorityColors[task.priority].label} 

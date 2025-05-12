@@ -1,5 +1,4 @@
 import '../App.css';
-import React from 'react';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { styled } from '@mui/system';
 import { useNavigate } from 'react-router-dom';
@@ -24,8 +23,8 @@ function LandingPage () {
             <Box sx={{display: 'flex', height: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#9381FF', overflow: 'hidden' }}>
                 <Box className="imageContainer">
                     <img alt='StudyBuddy Logo' src="/images/studybuddylargelogo.png" className="logo" />
-                        <img alt='Landing Page Illustration' src="/images/landing.png" className="illustration" />
-                        <h1>Welcome to StudyBuddy👋!</h1>
+                    <img alt='Landing Page Illustration' src="/images/landing.png" className="illustration" />
+                    <h1>Welcome to StudyBuddy👋!</h1>
                 </Box>
                 <HeroSection>
                     <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', justifyContent: 'space-between' }}>

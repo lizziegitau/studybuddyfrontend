@@ -24,9 +24,9 @@ function FocusSession ({ onStart }) {
   
     const breaks = Math.floor(minutes / 25);
 
-    const handleStartSession = () => {
+    const handleStartSession = async () => {
         onStart(minutes);
-    };
+      };      
 
     return (
         <div>
@@ -34,9 +34,6 @@ function FocusSession ({ onStart }) {
             <CardContent>
                 <Typography variant="h5" fontWeight="bold" color="#9381FF" gutterBottom>
                     Get Ready to Focus
-                 </Typography>
-                <Typography variant="body2" color="textSecondary" gutterBottom>
-                    We'll turn off notifications and app alerts during each session.
                 </Typography>
                 <Box display="flex" alignItems="center" justifyContent="center">
                     <Box position="relative">

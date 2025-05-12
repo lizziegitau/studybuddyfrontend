@@ -17,7 +17,7 @@ const style = {
 
 function AddFlashcardModal({ open, onClose, folder, onAddFlashcard }) {
     const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+    const [answer, setAnswer] = useState("");
 
   const handleSubmit = () => {
     if (question.trim() && answer.trim()) {

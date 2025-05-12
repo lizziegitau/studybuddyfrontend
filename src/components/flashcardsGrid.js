@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Button, Card, CardContent, Typography, Divider, Tooltip, IconButton, Fab } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import AddIcon from '@mui/icons-material/Add'
@@ -6,16 +6,50 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from '@mui/icons-material/Delete';
 import StudyMode from './flashcardsStudyMode';
-import { flashcards } from "../flashcardData";
 import AddFlashcardModal from "./addFlashcard";
 import EditFlashcardModal from "./editFlashcard";
+import { useUser } from "@clerk/clerk-react";
+import SimpleSnackbar from "./snackbar";
 
-const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
+const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlashcards, isFlashcardsLoading, setIsFlashcardsLoading, selectedFiles  }) => {
   const [studyMode, setStudyMode] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedFlashcard, setSelectedFlashcard] = useState(null);
-  const [deckFlashcards, setDeckFlashcards] = useState(flashcards.filter(card => card.deckId === folder.deckId));
+  const [deckFlashcards, setDeckFlashcards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  const showSnackbar = (message, severity = 'error') => {
+  setSnackbar({
+    open: true,
+    message,
+    severity,
+  });
+  };
+
+  const hideSnackbar = () => {
+  setSnackbar(prev => ({
+    ...prev,
+    open: false,
+  }));
+  };
+
+  useEffect(() => {
+    const getFlashcards = async () => {
+      setLoading(true);
+      const cards = await fetchFlashcards();
+      const filtered = (cards || []).filter(card => card.deckId === folder.deckId);
+      setDeckFlashcards(filtered);
+      setLoading(false);
+    };
+    getFlashcards();
+  }, [folder.deckId, fetchFlashcards]);
 
   if (studyMode) {
     return (
@@ -27,18 +61,135 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
     );
   }
 
-  const handleAddFlashcard = (newFlashcard) => {
-    setDeckFlashcards([...deckFlashcards, { id: Date.now(), ...newFlashcard }]);
+  if (loading) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h6">Loading flashcards...</Typography>
+      </Box>
+    );
+  }
+
+  const handleAddFlashcard = async (newFlashcard) => {
+    try {
+      const res = await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({...newFlashcard, userId: user.id}),
+      });
+  
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to add flashcard');
+      }
+  
+      const createdFlashcard = await res.json();
+      setDeckFlashcards(prev => [...prev, createdFlashcard]);
+
+      showSnackbar("Flashcard added successfully.", "success");
+  
+    } catch (error) {
+      showSnackbar("Error adding flashcard.", "error");
+      console.error('Add flashcard error:', error.message);
+    }
   };
 
-  const handleEditFlashcard = (updatedFlashcard) => {
-    setDeckFlashcards(deckFlashcards.map(card => 
-      card.id === updatedFlashcard.id ? updatedFlashcard : card
-    ));
+  const handleEditFlashcard = async (updatedFlashcard) => {
+    try {
+      const res = await fetch(`/api/flashcards/${updatedFlashcard.flashcardId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: updatedFlashcard.question,
+          answer: updatedFlashcard.answer,
+        }),
+      });
+  
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to update flashcard');
+      }
+  
+      setDeckFlashcards(prev =>
+        prev.map(card => (card.flashcardId === updatedFlashcard.flashcardId ? updatedFlashcard : card))
+      );
+      showSnackbar("Flashcard updated successfully.", "success");
+    } catch (error) {
+      showSnackbar("Error editing flashcard.", "error");
+      console.error('Update error:', error);
+    }
+  };
+  
+  const handleDeleteFlashcard = async (flashcardId) => {
+  
+    try {
+      const res = await fetch(`/api/flashcards/${flashcardId}`, {
+        method: 'DELETE',
+      });
+  
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete flashcard');
+      }
+  
+      setDeckFlashcards(prev => prev.filter(card => card.flashcardId !== flashcardId));
+      showSnackbar("Flashcard deleted successfully.", "success");
+    } catch (error) {
+      showSnackbar("Error deleting flashcard.", "error");
+      console.error('Delete error:', error);
+    }
+  };
+
+  const handleGenerateFlashcards = async () => {
+    try {
+      setIsFlashcardsLoading(true);
+      
+      const formData = new FormData();
+      
+      formData.append("userId", user.id);
+      formData.append("deckId", folder.deckId);
+      
+      if (selectedFiles && selectedFiles.length > 0) {
+        selectedFiles.forEach((file) => formData.append("files", file));
+      }
+      
+      const response = await fetch("/api/flashcards/generate-flashcards", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate flashcards");
+      }
+  
+      await response.json();
+      
+      const updated = await fetchFlashcards();
+      setDeckFlashcards(updated.filter(card => card.deckId === folder.deckId));
+      
+      setIsFlashcardsLoading(false);
+      showSnackbar("Flashcards generated successfully.", "success");
+      
+    } catch (err) {
+      console.error("Flashcard generation failed:", err);
+      showSnackbar("Flashcard generation failed.", "error");
+      setIsFlashcardsLoading(false);
+    }
   };
   
     return (
       <Box sx={{ p:4, width: '100%' }}>
+        <SimpleSnackbar
+            open={snackbar.open}
+            onClose={hideSnackbar}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            duration={4000}
+        />
 
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
           <Tooltip title="Back to Decks" arrow>
@@ -58,7 +209,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
 
         {deckFlashcards.length === 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',minHeight: '50vh', textAlign: 'center', p: 3}}>
-          <Card key={deckFlashcards.deckId} sx={{ p: 4, maxWidth: 500, width: '100%', backgroundColor: "#F8F7FF", borderRadius: "20px", display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <Card key={deckFlashcards.flashcardId} sx={{ p: 4, maxWidth: 500, width: '100%', backgroundColor: "#F8F7FF", borderRadius: "20px", display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <Typography variant="h5" color="text.secondary">
               You don't have any flashcards in this deck yet
             </Typography>
@@ -78,14 +229,14 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
       ) : (
         <Grid container spacing={3} sx={{ width: '100%' }} columns={{ xs: 12, sm: 12, md: 12, lg: 12 }} >
         {deckFlashcards.map((flashcard) => (
-          <Grid key={flashcard.id} size={{xs: 12, sm: 6, lg: 3}}>
-            <Card key={flashcard.id} sx={{ margin: '0 auto', padding: 2, textAlign: "center", backgroundColor: "#F8F7FF", width: "100%", minHeight: "300px", borderRadius: "20px", position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+          <Grid key={flashcard.flashcardId} size={{xs: 12, sm: 6, lg: 3}}>
+            <Card key={flashcard.flashcardId} sx={{ margin: '0 auto', padding: 2, textAlign: "center", backgroundColor: "#F8F7FF", width: "100%", minHeight: "300px", borderRadius: "20px", position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
 
                 <Box sx={{position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: 1 }}>
                 <IconButton size="small" onClick={() => {setOpenEditModal(true); setSelectedFlashcard(flashcard);}}>
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error">
+                  <IconButton size="small" onClick={() => handleDeleteFlashcard(flashcard.flashcardId)} color="error">
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
@@ -98,6 +249,15 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal }) => {
             </Card>
             </Grid>
           ))}
+          <Grid size={{xs: 12, sm: 6, lg: 3}}>
+            <Card  sx={{ margin: '0 auto', padding: 2, textAlign: "center", backgroundColor: "#F8F7FF", width: "100%", minHeight: "300px", borderRadius: "20px", position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+              <CardContent sx={{ width: "100%" }} >
+                <Typography variant="body1" sx={{ pb: 1 }}>Click the button below to generate more flashcards</Typography>
+                <Divider sx={{ width: "80%", mx: "auto", my: 2 }} />
+                <Button variant="contained" sx={{backgroundColor: '#9381FF', pt: 1}} onClick={handleGenerateFlashcards} disabled={isFlashcardsLoading} >{isFlashcardsLoading ? 'Generating...' : 'Generate More'}</Button>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
       )}
 

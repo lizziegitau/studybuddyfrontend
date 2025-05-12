@@ -6,7 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ClearIcon from '@mui/icons-material/Clear';
 import { styled } from "@mui/system";
 import TimerTaskModal from '../components/timerTaskModal';
-import { tasks } from '../taskData';
+import SimpleSnackbar from '../components/snackbar';
 
 const StyledCard = styled(Card)({
     backgroundColor: "#F8F7FF",
@@ -16,10 +16,28 @@ const StyledCard = styled(Card)({
     padding: "20px",
   });
 
-function SessionTask () {
+function SessionTask ({ tasks, sessionTasks, setSessionTasks, loading, handleAddTasks}) {
+  const [openTaskModal, setOpenTaskModal] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
-  const [openTaskModal, setOpenTaskModal] = useState(false)
-  const [sessionTasks, setSessionTasks] = useState([]);
+  const showSnackbar = (message, severity = 'error') => {
+  setSnackbar({
+      open: true,
+      message,
+      severity,
+  });
+  };
+
+  const hideSnackbar = () => {
+  setSnackbar(prev => ({
+      ...prev,
+      open: false,
+  }));
+  };
 
   const handleTaskOpen = () => {
       setOpenTaskModal(true);
@@ -29,22 +47,59 @@ function SessionTask () {
       setOpenTaskModal(false);
   };
 
-  const handleAddTasks = (selectedTaskIds) => {
-    const selectedTasks = tasks.filter((task) => selectedTaskIds.includes(task.id));
-    setSessionTasks((prevTasks) => [...prevTasks, ...selectedTasks]);
+  
+  const handleMarkAsDone = async (taskId) => {
+    const sessionId = localStorage.getItem('lastSessionId');
+    if (!sessionId) return;
+
+    try {
+      const res = await fetch(`/api/study-session/${sessionId}/task/${taskId}/complete`, {
+        method: 'PATCH',
+      });
+
+      if (!res.ok) throw new Error('Failed to mark task as done');
+
+      setSessionTasks((prevTasks) => 
+        prevTasks.map((task) =>
+          task.taskId === taskId ? { ...task, taskStatus: 'Completed' } : task
+        )
+      );
+      showSnackbar("Successfully marked task as done!", "success");
+    } catch (error) {
+      console.error('Error marking task as done:', error);
+      showSnackbar("Failed to mark task as done", "error");
+    }
   };
 
-  const handleMarkAsDone = (taskId) => {
-    setSessionTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId)); // Remove completed task
-  };
+  const handleRemoveTask = async (taskId) => {
+    const sessionId = localStorage.getItem('lastSessionId');
+    if (!sessionId) return;
 
-  const handleRemoveTask = (taskId) => {
-    setSessionTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+    try {
+      const res = await fetch(`/api/study-session/${sessionId}/task/${taskId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to remove task from session');
+
+      setSessionTasks((prevTasks) => prevTasks.filter((task) => task.taskId !== taskId));
+      showSnackbar("Session task removed successfully", "success");
+    } catch (error) {
+      console.error('Error removing task:', error);
+      showSnackbar("Failed to remove session task", "error");
+    }
   };
 
     return (
         <div>
-            <StyledCard sx={{ mt: 3, position: 'relative' }}>
+          <SimpleSnackbar
+              open={snackbar.open}
+              onClose={hideSnackbar}
+              message={snackbar.message}
+              severity={snackbar.severity}
+              duration={4000}
+          />
+          <StyledCard sx={{ mt: 3, position: 'relative' }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" color="#9381FF">To Do</Typography>
               <IconButton sx={{ position: 'absolute', top: '10px', right: '10px' }} onClick={handleTaskOpen} >
@@ -56,20 +111,23 @@ function SessionTask () {
               <List>
                 {sessionTasks.length > 0 ? (
                 sessionTasks.map((task) => (
-                  <ListItem key={task.id} secondaryAction={
+                  <ListItem key={task.taskId} secondaryAction={
                     <Box>
-                      <IconButton edge="end" onClick={() => handleMarkAsDone(task.id)} sx={{ color: '#81C784' }}>
+                      <IconButton edge="end" onClick={() => handleMarkAsDone(task.taskId)} sx={{ color: '#81C784' }}>
                         <CheckCircleIcon />
                       </IconButton>
-                      <IconButton edge="end" onClick={() => handleRemoveTask(task.id)} color="error">
+                      <IconButton edge="end" onClick={() => handleRemoveTask(task.taskId)} color="error">
                         <ClearIcon />
                       </IconButton>
                     </Box>
-                }>
-                  <ListItemText primary={task.title} secondary={task.description} />
-                </ListItem>
-              ))
-            ) : (
+                  }>
+                    <ListItemText primary={task.taskDescription} />
+                    <ListItemText primary={task.taskStatus} />
+                    <ListItemText primary={new Date(task.dueDate).toLocaleDateString()} />
+                    <ListItemText primary={task.priority} />
+                  </ListItem>
+                ))
+              ) : (
               <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                 No tasks selected.
               </Typography>
@@ -78,7 +136,7 @@ function SessionTask () {
             </CardContent>
           </StyledCard>
 
-          <TimerTaskModal open={openTaskModal} onClose={handleTaskClose} onAddTasks={handleAddTasks} />
+          <TimerTaskModal open={openTaskModal} onClose={handleTaskClose} onAddTasks={handleAddTasks} tasks={tasks} loading={loading} />
         </div>
     )
 }

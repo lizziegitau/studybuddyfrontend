@@ -54,7 +54,6 @@ const StudyMode = ({ flashcards, deckName, onBack }) => {
           <ChevronLeftIcon />
         </IconButton>
 
-        {/* Flashcard Container */}
         <motion.div
           className="flip-container"
           style={{
@@ -75,7 +74,7 @@ const StudyMode = ({ flashcards, deckName, onBack }) => {
               position: "relative",
             }}
           >
-            {/* Front Side */}
+
             <Card
               sx={{
                 width: "100%",
@@ -95,7 +94,6 @@ const StudyMode = ({ flashcards, deckName, onBack }) => {
               {flashcards[currentIndex].question}
             </Card>
 
-            {/* Back Side */}
             <Card
               sx={{
                 width: "100%",

@@ -1,37 +1,170 @@
 import '../App.css';
-import { Box, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid2'
-import { tasks } from '../taskData';
+import { useState, useEffect } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import DashTaskList from '../components/dashtaskList';
 import StudyBarChart from '../components/studyBarChart';
 import DashboardCard from '../components/dashboardCard';
+import ProductivityWidget from '../components/productivityWidget';
 import { useUser } from "@clerk/clerk-react";
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import SimpleSnackbar from '../components/snackbar';
+
+dayjs.extend(isBetween);
 
 function MainBoard() {
   const { user } = useUser();
-  const today = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter(task => task.dueDate === today);
+  const today = dayjs();
+  const sevenDaysFromToday = today.add(7, 'day');
+  
+  const [tasks, setTasks] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [dailyGoal, setDailyGoal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
+
+  const showSnackbar = (message, severity = 'error') => {
+  setSnackbar({
+      open: true,
+      message,
+      severity,
+  });
+  };
+
+  const hideSnackbar = () => {
+  setSnackbar(prev => ({
+      ...prev,
+      open: false,
+  }));
+  };
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const response = await fetch(`/api/tasks/${user.id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch tasks');
+        }
+        
+        const data = await response.json();
+        setTasks(data);
+        showSnackbar("Tasks loaded successfully!", "success");
+
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+        showSnackbar("Failed to load tasks.", "error");
+      }
+    };
+    
+    fetchTasks();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchDailyGoal = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const response = await fetch(`/api/daily-goal/${user.id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch daily goal');
+        }
+        
+        const data = await response.json();
+        setDailyGoal(data.dailyGoalMinutes);
+        showSnackbar("Daily goal loaded!", "success");
+
+      } catch (err) {
+        console.error('Error fetching daily goal:', err);
+        showSnackbar("Failed to load daily goal.", "error");
+      }
+    };
+      
+    fetchDailyGoal();
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!user?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/study-session/${user.id}`);
+        if (!res.ok) throw new Error("Failed to fetch study sessions");
+        const data = await res.json();
+        setSessions(data);
+        showSnackbar("Study sessions loaded!", "success");
+
+      } catch (error) {
+        console.error("Error fetching sessions:", error);
+        showSnackbar("Failed to load sessions.", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSessions();
+  }, [user?.id]);
+
+  const upcomingTasks = tasks.filter(task => {
+    const dueDate = dayjs(task.dueDate);
+    return dueDate.isAfter(today) && dueDate.isBefore(sevenDaysFromToday);
+  });
 
   const taskCounts = {
-    left: todayTasks.filter(task => task.status === "To-Do").length,
-    done: todayTasks.filter(task => task.status === "Done").length,
-    inProgress: todayTasks.filter(task => task.status === "In-Progress").length
+    left: upcomingTasks.filter(task => task.taskStatus === "To-Do").length,
+    done: upcomingTasks.filter(task => task.taskStatus === "Done").length,
+    inProgress: upcomingTasks.filter(task => task.taskStatus === "In-Progress").length
   };
 
   const taskCards = [
     { label: "Tasks Left", value: taskCounts.left, color: "#C6E7FF", textColor: "#133E87" },
     { label: "Done", value: taskCounts.done, color: "#A5D6A7", textColor: "#2E7D32" },
     { label: "In Progress", value: taskCounts.inProgress, color: "#FDDBBB", textColor: "#F9A825" }
-  ]
+  ];
+
+  if (!user) {
+    return (
+      <Box p={3} sx={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Typography variant="h6">Please log in to view your dashboard</Typography>
+      </Box>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Box p={3} sx={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <Box p={3}>
+    <Box p={3} sx={{height: '100vh', mb: 2}}>
+      <SimpleSnackbar
+        open={snackbar.open}
+        onClose={hideSnackbar}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        duration={4000}
+      />
       <Box display='flex' alignItems='center' justifyContent='flex-start' mb={3}>
-        <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >{user.username}'s Dashboard</Typography>
+        <Typography variant='h5' fontWeight='bold' sx={{ textTransform: 'capitalize'}} >
+          {user.username}'s Dashboard
+        </Typography>
       </Box>
+      
       <DashboardCard/>
       
-      <Grid container spacing={2} sx={{ my: 2, }}>
+      <Grid container spacing={2} sx={{ my: 2 }}>
         {taskCards.map((card, index) => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
             <Box sx={{ p: 3, textAlign: "center", backgroundColor: card.color }}>
@@ -45,19 +178,22 @@ function MainBoard() {
           </Grid>
         ))}
       </Grid>
-      <Grid container spacing={2} sx={{ mt: 2, }}>
-        <Grid size={{xs: 12, md: 6}}>
-          <Box sx={{ p: 2, minHeight: 300, height: "100%", display: "flex", flexDirection: "column" }}>
-            <StudyBarChart />
-          </Box>
-        </Grid>
 
-        <Grid size={{xs: 12, md: 6}}>
-          <Box sx={{ p: 2, minHeight: 300, height: "100%", display: "flex", flexDirection: "column" }}>
-            <DashTaskList tasks={tasks} />
-          </Box>
+      <Box sx={{ width: "100%" }}>
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid size={{xs: 12, md: 6}}>
+            <StudyBarChart sessions={sessions} />
+          </Grid>
+          <Grid size={{xs: 12, md: 6}}>
+            <ProductivityWidget sessions={sessions} dailyGoal={dailyGoal} />
+          </Grid>
         </Grid>
-      </Grid>
+        <Grid container sx={{ mb: 3 }}>
+          <Grid size={{xs: 12}}>
+            <DashTaskList tasks={tasks} />
+          </Grid>
+        </Grid>
+      </Box>
     </Box>
   );
 }
