@@ -115,6 +115,41 @@ span {
   margin: 1rem 0;
 }
 
+.imageContainerLanding {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: white;
+  height: 100%;
+  position: relative;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  text-align: center;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.imageContainerLanding h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.logoLanding {
+  position: absolute;
+  top: 30px;
+  left: 20px;
+  width: 150px;
+  height: auto;
+}
+
+.illustrationLanding {
+  max-width: 80%;
+  margin-top: 2.5rem;
+}
+
 .dashboard-content {
   display: flex;
   flex-grow: 1;
@@ -159,4 +194,207 @@ span {
 .folders-image {
   height: 200px;
   width: 200px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .signup {
+    flex-direction: column;
+    min-height: 100vh; /* CHANGE from height to min-height */
+    height: auto;       /* ADD this */
+    overflow-y: auto;
+    overflow-x: hidden; /* ADD this just in case */
+  }
+
+  .imageContainer {
+    flex: none;
+    height: 35vh;
+    min-height: 280px;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    justify-content: flex-start;
+    padding-top: 60px;
+  }
+
+  .logo {
+    position: absolute;           /* KEEP it absolute for top-left placement */
+    top: 15px;                    /* Adjust as needed */
+    left: 15px;                   /* Adjust as needed */
+    transform: none;              /* Remove centering */
+    width: 100px;                 /* Adjust size for mobile */
+    height: auto;
+    margin-bottom: 0;             /* Remove any extra spacing */
+  }
+
+  .illustration {
+    max-width: 60%;
+    margin-top: 1rem;
+    max-height: 120px;
+    object-fit: contain;
+  }
+
+  .imageContainer h1 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .formContainer {
+    flex: none;
+    height: auto;
+    min-height: 65vh;
+    padding: 1.5rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+
+  .formContainer h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .formContainer h3 {
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+  }
+
+  .inputContainer {
+    width: 100%;
+    max-width: 350px;
+  }
+
+  .socialContainer {
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Adjust form spacing on mobile */
+  .MuiTextField-root {
+    margin-bottom: 1rem !important;
+  }
+
+  .MuiFormControl-root {
+    margin-bottom: 1rem !important;
+  }
+
+  .MuiButton-root {
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .imageContainer {
+    height: 30vh;
+    min-height: 240px;
+    padding-top: 50px;
+  }
+
+  .logo {
+    top: 10px;
+  }
+
+  .illustration {
+    max-width: 50%;
+    max-height: 100px;
+  }
+
+  .imageContainer h1 {
+    font-size: 1.1rem;
+  }
+
+  .formContainer {
+    padding: 1rem;
+    min-height: 70vh;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .formContainer h1 {
+    font-size: 1.3rem;
+  }
+
+  .inputContainer {
+    max-width: 300px;
+  }
+
+  .socialContainer {
+    max-width: 300px;
+  }
+}
+
+.landingContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  color: white;
+  position: relative;
+}
+
+.logoLanding {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 120px;
+  height: auto;
+}
+
+.illustrationLanding {
+  max-width: 80%;
+  margin: 100px 0 1rem 0;
+}
+
+.landingTitle {
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.landingSubtitle,
+.landingBody {
+  margin-top: 0.5rem;
+  max-width: 500px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .landingContent {
+    padding-top: 5rem;
+    padding-bottom: 4rem;
+  }
+
+  .logoLanding {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 100px;
+  }
+
+  .illustrationLanding {
+    max-width: 70%;
+    margin: 3rem 0 1rem 0;
+  }
+
+  .landingTitle {
+    font-size: 1.8rem;
+  }
+
+  .landingSubtitle {
+    font-size: 1.2rem;
+  }
+
+  .landingBody {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
 }

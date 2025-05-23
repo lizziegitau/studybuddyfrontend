@@ -116,8 +116,8 @@ function SignUp () {
             />
             <div className="imageContainer">
                 <img alt='StudyBuddy Logo' src="/images/studybuddylargelogo.png" className="logo" />
-                    <img alt='studying pic' src="/images/studying.png" className="illustration" />
-                    <h1>Welcome to StudyBuddy👋!</h1>
+                <img alt='studying pic' src="/images/studying.png" className="illustration" />
+                <h1>Welcome to StudyBuddy👋!</h1>
             </div>
             <div className="formContainer">
                 <h1>Create Account</h1>

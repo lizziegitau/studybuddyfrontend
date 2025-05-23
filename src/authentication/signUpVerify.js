@@ -253,10 +253,10 @@ function SignUpVerification() {
             <div className="formContainer">
                 <h1>Verify Your Email</h1>
                 <Box component="form" onSubmit={handleVerify}>
-                <OTP separator={<span>-</span>} value={otp} onChange={setOtp} length={6} />
-                    <Button type="submit" variant="contained" disabled={loading} sx={{ backgroundColor: "#9381ff", color: "white", width: "100%" }}>
-                      {loading ? "Verifying..." : "Verify & Continue"}
-                    </Button>
+                  <OTP separator={<span>-</span>} value={otp} onChange={setOtp} length={6} />
+                  <Button type="submit" variant="contained" disabled={loading} sx={{ backgroundColor: "#9381ff", color: "white", width: "100%" }}>
+                    {loading ? "Verifying..." : "Verify & Continue"}
+                  </Button>
                 </Box>
             </div>
         </div>
