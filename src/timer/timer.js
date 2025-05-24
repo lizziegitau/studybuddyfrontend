@@ -105,7 +105,6 @@ function Timer() {
         setSessionTasks(data);
       } catch (err) {
         console.error("Error fetching session tasks:", err);
-        showSnackbar("Failed to load session tasks. Please try again", "error");
       }
     };
   
