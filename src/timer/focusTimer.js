@@ -14,8 +14,6 @@ const StyledCard = styled(Card)({
   });
 
 function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
-
-    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const { user } = useUser();
     const breakTime = 5 * 60;
     const initialTime = duration * 60;
@@ -77,7 +75,7 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
           sessionTaskIds: taskIds
         };
   
-        const response = await fetch(`${backendUrl}/api/study-session`, {
+        const response = await fetch('/api/study-session', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

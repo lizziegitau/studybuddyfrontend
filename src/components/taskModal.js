@@ -19,7 +19,6 @@ const style = {
 };
 
 function TaskModal({ open, onClose, task, onSave, setIsEditing }) {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [editedTask, setEditedTask] = useState({ taskDescription: '', taskStatus: '', dueDate: '', priority: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -68,7 +67,7 @@ function TaskModal({ open, onClose, task, onSave, setIsEditing }) {
         priority: editedTask.priority
       };
 
-      const response = await fetch(`${backendUrl}/api/tasks/${task.taskId}`, {
+      const response = await fetch(`/api/tasks/${task.taskId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

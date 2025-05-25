@@ -18,7 +18,6 @@ const style = {
 
 
 function FlashcardFolderModal({ open, onClose, onSave }) {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { user } = useUser();
   const [folderName, setFolderName] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -54,7 +53,7 @@ function FlashcardFolderModal({ open, onClose, onSave }) {
         deckName: folderName.trim()
       };
   
-      const response = await fetch(`${backendUrl}/api/decks`, {
+      const response = await fetch('/api/decks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

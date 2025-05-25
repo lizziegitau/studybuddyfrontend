@@ -16,7 +16,6 @@ import { useTheme } from '@mui/material/styles';
 dayjs.extend(isBetween);
 
 function MainBoard() {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { user } = useUser();
   const today = dayjs();
   const sevenDaysFromToday = today.add(7, 'day');
@@ -53,7 +52,7 @@ function MainBoard() {
       if (!user?.id) return;
       
       try {
-        const response = await fetch(`${backendUrl}/api/tasks/${user.id}`);
+        const response = await fetch(`/api/tasks/${user.id}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch tasks');
@@ -70,14 +69,14 @@ function MainBoard() {
     };
     
     fetchTasks();
-  }, [user?.id, backendUrl]);
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchDailyGoal = async () => {
       if (!user?.id) return;
       
       try {
-        const response = await fetch(`${backendUrl}/api/daily-goal/${user.id}`);
+        const response = await fetch(`/api/daily-goal/${user.id}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch daily goal');
@@ -94,7 +93,7 @@ function MainBoard() {
     };
       
     fetchDailyGoal();
-  }, [user?.id, backendUrl]);
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -102,7 +101,7 @@ function MainBoard() {
       
       setIsLoading(true);
       try {
-        const res = await fetch(`${backendUrl}/api/study-session/${user.id}`);
+        const res = await fetch(`/api/study-session/${user.id}`);
         if (!res.ok) throw new Error("Failed to fetch study sessions");
         const data = await res.json();
         setSessions(data);
@@ -117,7 +116,7 @@ function MainBoard() {
     };
 
     fetchSessions();
-  }, [user?.id, backendUrl]);
+  }, [user?.id]);
 
   const upcomingTasks = tasks.filter(task => {
     const dueDate = dayjs(task.dueDate);

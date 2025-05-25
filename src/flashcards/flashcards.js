@@ -9,7 +9,6 @@ import { useUser } from "@clerk/clerk-react";
 import SimpleSnackbar from "../components/snackbar.js";
 
 const Flashcards = () => {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [openFlashcardModal, setOpenFlashcardModal] = useState(false);
   const [openCreateFlashcardModal, setOpenCreateFlashcardModal] = useState(false);
@@ -44,7 +43,7 @@ const Flashcards = () => {
         const fetchDecks = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`${backendUrl}/api/decks/${user.id}`);
+                const response = await fetch(`/api/decks/${user.id}`);
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch decks');
@@ -64,7 +63,7 @@ const Flashcards = () => {
 
         fetchDecks();
     }
-}, [user, selectedFolder, backendUrl]);
+}, [user, selectedFolder]);
 
   const handleSaveFolder = (newFolder) => {
     setFolders((prev) => [newFolder, ...prev]);
@@ -83,7 +82,7 @@ const Flashcards = () => {
     formData.append("deckId", selectedFolder?.deckId);
   
     try {
-      const response = await fetch(`${backendUrl}/api/flashcards/generate-flashcards`, {
+      const response = await fetch('/api/flashcards/generate-flashcards', {
         method: "POST",
         body: formData,
       });
@@ -107,7 +106,7 @@ const Flashcards = () => {
     const userId = user.id;
     const deckId = selectedFolder.deckId;
     try {
-      const response = await fetch(`${backendUrl}/api/flashcards/${userId}/${deckId}`);
+      const response = await fetch(`/api/flashcards/${userId}/${deckId}`);
       const data = await response.json();
   
       if (response.ok) {

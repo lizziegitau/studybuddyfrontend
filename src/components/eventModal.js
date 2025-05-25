@@ -16,7 +16,6 @@ const style = {
   };
 
 const EventModal = ({selectedEvent, open, onClose, setOpenEventModal, setIsEditing, setNewEvent, onEventDeleted}) => {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const [isDeleting, setIsDeleting] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -80,7 +79,7 @@ const EventModal = ({selectedEvent, open, onClose, setOpenEventModal, setIsEditi
         try {
             setIsDeleting(true);
             
-            const response = await fetch(`${backendUrl}/api/planner-events/${eventId}`, {
+            const response = await fetch(`/api/planner-events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'

@@ -18,8 +18,6 @@ const style = {
 
 function CreateEventModal ({newEvent, setNewEvent, open, onClose, handleAddEvent, isEditing, selectedEvent, handleEditEvent}) {
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
-
     const handleChange = (e) => setNewEvent({ ...newEvent, [e.target.name]: e.target.value });
     const { user } = useUser();
     const [snackbar, setSnackbar] = useState({
@@ -80,7 +78,7 @@ function CreateEventModal ({newEvent, setNewEvent, open, onClose, handleAddEvent
         };
       
         try {
-          const res = await fetch(`${backendUrl}/api/planner-events`, {
+          const res = await fetch('/api/planner-events', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(eventToAdd),
@@ -171,7 +169,7 @@ function CreateEventModal ({newEvent, setNewEvent, open, onClose, handleAddEvent
       try {
         const eventId = selectedEvent.id || selectedEvent.eventId;
         
-        const res = await fetch(`${backendUrl}/api/planner-events/${eventId}`, {
+        const res = await fetch(`api/planner-events/${eventId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(eventToUpdate),

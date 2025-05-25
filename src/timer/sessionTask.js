@@ -17,7 +17,6 @@ const StyledCard = styled(Card)({
   });
 
 function SessionTask ({ tasks, sessionTasks, setSessionTasks, loading, handleAddTasks}) {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -54,7 +53,7 @@ function SessionTask ({ tasks, sessionTasks, setSessionTasks, loading, handleAdd
     if (!sessionId) return;
 
     try {
-      const res = await fetch(`${backendUrl}/api/study-session/${sessionId}/task/${taskId}/complete`, {
+      const res = await fetch(`api/study-session/${sessionId}/task/${taskId}/complete`, {
         method: 'PATCH',
       });
 
@@ -77,7 +76,7 @@ function SessionTask ({ tasks, sessionTasks, setSessionTasks, loading, handleAdd
     if (!sessionId) return;
 
     try {
-      const res = await fetch(`${backendUrl}/api/study-session/${sessionId}/task/${taskId}`, {
+      const res = await fetch(`/api/study-session/${sessionId}/task/${taskId}`, {
         method: 'DELETE',
       });
 

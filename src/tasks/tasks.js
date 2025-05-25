@@ -8,7 +8,6 @@ import { useUser } from "@clerk/clerk-react";
 import SimpleSnackbar from '../components/snackbar';
 
 function Tasks() {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const { user } = useUser();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [createTaskModal, setCreateTaskModal] = useState(false);
@@ -42,7 +41,7 @@ function Tasks() {
             const fetchTasks = async () => {
                 try {
                     setLoading(true);
-                    const response = await fetch(`${backendUrl}/api/tasks/${user.id}`);
+                    const response = await fetch(`/api/tasks/${user.id}`);
                     
                     if (!response.ok) {
                         throw new Error('Failed to fetch tasks');
@@ -61,7 +60,7 @@ function Tasks() {
             
             fetchTasks();
         }
-    }, [user, backendUrl]);
+    }, [user]);
 
     const handleModalToggle = (task) => {
         setSelectedTask(task);
@@ -86,7 +85,7 @@ function Tasks() {
 
     const handleUpdateTask = async (updatedTask) => {
         try {
-            const response = await fetch(`${backendUrl}/api/tasks/${updatedTask.taskId}`, {
+            const response = await fetch(`/api/tasks/${updatedTask.taskId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -121,7 +120,7 @@ function Tasks() {
 
     const handleDeleteTask = async (taskId) => {
         try {
-            const response = await fetch(`${backendUrl}/api/tasks/${taskId}`, {
+            const response = await fetch(`/api/tasks/${taskId}`, {
                 method: 'DELETE',
             });
 
