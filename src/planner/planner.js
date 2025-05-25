@@ -10,6 +10,7 @@ import EventModal from '../components/eventModal';
 import SimpleSnackbar from '../components/snackbar';
 
 const Planner = () => {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const { user } = useUser();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -46,7 +47,7 @@ const Planner = () => {
             const fetchEvents = async () => {
                 try {
                     setLoading(true);
-                    const response = await fetch(`/api/planner-events/${user.id}`);
+                    const response = await fetch(`${backendUrl}/api/planner-events/${user.id}`);
                     
                     if (!response.ok) {
                         throw new Error('Failed to fetch events');
@@ -65,7 +66,7 @@ const Planner = () => {
             
             fetchEvents();
         }
-    }, [user?.id]);
+    }, [user?.id, backendUrl]);
 
     const handleAddEvent = (event) => {
         setEvents([...events, event]);

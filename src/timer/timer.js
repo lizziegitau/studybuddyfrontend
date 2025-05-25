@@ -9,6 +9,7 @@ import { useUser } from "@clerk/clerk-react";
 import SimpleSnackbar from "../components/snackbar";
 
 function Timer() {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { user } = useUser();
   const savedSessionActive = localStorage.getItem("isFocusActive");
   const savedSessionDuration = localStorage.getItem("sessionDuration");
@@ -60,7 +61,7 @@ function Timer() {
         const fetchTasks = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/tasks/${user.id}`);
+                const response = await fetch(`${backendUrl}/api/tasks/${user.id}`);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch tasks');
@@ -78,7 +79,7 @@ function Timer() {
         
         fetchTasks();
     }
-  }, [user]);
+  }, [user, backendUrl]);
 
   useEffect(() => {
     if (isFocusActive) {
@@ -99,7 +100,7 @@ function Timer() {
       if (!lastSessionId) return;
   
       try {
-        const res = await fetch(`/api/study-session/${lastSessionId}/tasks`);
+        const res = await fetch(`${backendUrl}/api/study-session/${lastSessionId}/tasks`);
         if (!res.ok) throw new Error("Failed to fetch session tasks");
         const data = await res.json();
         setSessionTasks(data);
@@ -110,7 +111,7 @@ function Timer() {
   
     fetchSessionTasks();
   }
-  }, [isFocusActive]);
+  }, [isFocusActive, backendUrl]);
 
   const startFocusSession = (minutes) => {
     setSessionDuration(minutes);

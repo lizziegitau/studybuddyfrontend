@@ -22,6 +22,7 @@ const DeckCard = styled(Card)(({ theme }) => ({
 }));
 
 function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal, folders, onFolderDelete }) {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [selectedDeck, setSelectedDeck] = useState(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -79,7 +80,7 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal, folders, on
             return;
         }
         try {
-            const response = await fetch(`api/decks/${selectedDeck.deckId}`, {
+            const response = await fetch(`${backendUrl}api/decks/${selectedDeck.deckId}`, {
                 method: 'DELETE',
             });
             
@@ -106,7 +107,7 @@ function FoldersLanding ({ setSelectedFolder, setOpenFlashcardModal, folders, on
             return;
         }
         try {
-            const response = await fetch(`api/decks/${updatedFolder.deckId}`, {
+            const response = await fetch(`${backendUrl}api/decks/${updatedFolder.deckId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

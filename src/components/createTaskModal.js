@@ -16,6 +16,7 @@ const style = {
 };
 
 function CreateTaskModal({ open, onClose, onSave }) {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const { user } = useUser();
   const [task, setTask] = useState({
     taskDescription: '',
@@ -63,7 +64,7 @@ function CreateTaskModal({ open, onClose, onSave }) {
         ...task
       };
       
-      const response = await fetch('/api/tasks', {
+      const response = await fetch(`${backendUrl}/api/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

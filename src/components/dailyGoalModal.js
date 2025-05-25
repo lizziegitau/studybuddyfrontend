@@ -16,6 +16,7 @@ const style = {
 };
 
 function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal, userId }) {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
     const [tempGoal, setTempGoal] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +56,7 @@ function DailyGoalModal ({ open, onClose, dailyGoal, setDailyGoal, userId }) {
         setIsSubmitting(true);
     
         try {
-          const response = await fetch('/api/daily-goal', {
+          const response = await fetch(`${backendUrl}/api/daily-goal`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

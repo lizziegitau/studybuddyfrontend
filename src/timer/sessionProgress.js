@@ -40,6 +40,7 @@ const ProgressCircle = ({ value }) => (
 );
 
 function SessionProgress() {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL;
     const { user } = useUser();
     const [dailyGoal, setDailyGoal] = useState(30);
     const [openGoalModal, setOpenGoalModal] = useState(false);
@@ -74,7 +75,7 @@ function SessionProgress() {
             if (!user?.id) return;
             
             try {
-                const response = await fetch(`/api/daily-goal/${user.id}`);
+                const response = await fetch(`${backendUrl}/api/daily-goal/${user.id}`);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch daily goal');
@@ -89,7 +90,7 @@ function SessionProgress() {
         };
         
         fetchDailyGoal();
-    }, [user?.id]);
+    }, [user?.id, backendUrl]);
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -97,7 +98,7 @@ function SessionProgress() {
             
             setIsLoading(true);
             try {
-                const res = await fetch(`/api/study-session/${user.id}`);
+                const res = await fetch(`${backendUrl}/api/study-session/${user.id}`);
                 if (!res.ok) throw new Error("Failed to fetch study sessions");
                 const data = await res.json();
                 setSessions(data);
@@ -111,7 +112,7 @@ function SessionProgress() {
         };
     
         fetchSessions();
-    }, [user?.id]);
+    }, [user?.id, backendUrl]);
 
     useEffect(() => {
       if (sessions.length === 0 || dailyGoal <= 0) return;

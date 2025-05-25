@@ -12,6 +12,7 @@ import { useUser } from "@clerk/clerk-react";
 import SimpleSnackbar from "./snackbar";
 
 const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlashcards, isFlashcardsLoading, setIsFlashcardsLoading, selectedFiles  }) => {
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [studyMode, setStudyMode] = useState(false);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -71,7 +72,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
 
   const handleAddFlashcard = async (newFlashcard) => {
     try {
-      const res = await fetch('/api/flashcards', {
+      const res = await fetch(`${backendUrl}/api/flashcards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +98,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
 
   const handleEditFlashcard = async (updatedFlashcard) => {
     try {
-      const res = await fetch(`/api/flashcards/${updatedFlashcard.flashcardId}`, {
+      const res = await fetch(`${backendUrl}/api/flashcards/${updatedFlashcard.flashcardId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
   const handleDeleteFlashcard = async (flashcardId) => {
   
     try {
-      const res = await fetch(`/api/flashcards/${flashcardId}`, {
+      const res = await fetch(`${backendUrl}/api/flashcards/${flashcardId}`, {
         method: 'DELETE',
       });
   
@@ -156,7 +157,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
         selectedFiles.forEach((file) => formData.append("files", file));
       }
       
-      const response = await fetch("/api/flashcards/generate-flashcards", {
+      const response = await fetch(`${backendUrl}/api/flashcards/generate-flashcards`, {
         method: "POST",
         body: formData,
       });
