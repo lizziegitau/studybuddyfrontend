@@ -17,7 +17,7 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedFlashcard, setSelectedFlashcard] = useState(null);
   const [deckFlashcards, setDeckFlashcards] = useState([]);
-  const [loading, setLoading] = useState(true);
+  /* const [loading, setLoading] = useState(true); */
   const { user } = useUser();
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -42,11 +42,11 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
 
   useEffect(() => {
     const getFlashcards = async () => {
-      setLoading(true);
+      /* setLoading(true); */
       const cards = await fetchFlashcards();
       const filtered = (cards || []).filter(card => card.deckId === folder.deckId);
       setDeckFlashcards(filtered);
-      setLoading(false);
+      /* setLoading(false); */
     };
     getFlashcards();
   }, [folder.deckId, fetchFlashcards]);
@@ -61,13 +61,13 @@ const FlashcardGrid = ({ folder, onBack, setOpenCreateFlashcardModal, fetchFlash
     );
   }
 
-  if (loading) {
+/*   if (loading) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <Typography variant="h6">Loading flashcards...</Typography>
       </Box>
     );
-  }
+  } */
 
   const handleAddFlashcard = async (newFlashcard) => {
     try {
