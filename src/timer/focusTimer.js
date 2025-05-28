@@ -1,5 +1,5 @@
 import '../App.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CircularProgress, Button, Typography, Box, Card, CardContent } from "@mui/material";
 import { styled } from "@mui/system";
 import { useUser } from "@clerk/clerk-react";
@@ -24,9 +24,6 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
     const [accumulatedTime, setAccumulatedTime] = useState(
       parseInt(localStorage.getItem("accumulatedFocusTime") || "0")
     );
-    const [lastSavedTime, setLastSavedTime] = useState(
-      parseInt(localStorage.getItem("lastSavedFocusTime") || "0")
-    );
     const [sessionStartedAt] = useState(
       localStorage.getItem("sessionStartedAt") || new Date().toISOString()
     );
@@ -40,7 +37,7 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
     };
 
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
-    const [isRunning, setIsRunning] = useState(savedRunningState || true);
+    const [isRunning, setIsRunning] = useState(savedRunningState || false); // FIXED: Start paused by default
     const [isBreakTime, setIsBreakTime] = useState(savedBreakState || false);
     const [snackbar, setSnackbar] = useState({
       open: false,
@@ -63,16 +60,16 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
     }));
     };
 
-    const saveSessionData = async (minutesToSave) => {
+    const saveSessionData = useCallback(async (totalMinutes) => {
       
       try {
-        if (minutesToSave <= 0 || isBreakTime) return;
+        if (totalMinutes <= 0) return;
   
         const payload = {
           userId: user.id,
           sessionDate: sessionStartedAt.split('T')[0],
-          sessionDuration: minutesToSave,
-          sessionTaskIds: taskIds
+          sessionDuration: totalMinutes,
+          sessionTaskIds: taskIds || []
         };
   
         const response = await fetch('/api/study-session', {
@@ -88,19 +85,15 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
         }
   
         const savedSession = await response.json();
-
         localStorage.setItem("lastSessionId", savedSession.sessionId);
-  
-        setLastSavedTime(accumulatedTime);
-        localStorage.setItem("lastSavedFocusTime", accumulatedTime.toString());
 
-        showSnackbar("Session saved successfully!", "success");
+        showSnackbar(`Session saved: ${totalMinutes} minutes!`, "success");
   
       } catch (error) {
-        console.error('Error saving incremental session:', error);
+        console.error('Error saving session:', error);
         showSnackbar("Failed to save session!", "error");
       }
-    };
+    }, [user.id, sessionStartedAt, taskIds]);
 
     useEffect(() => {
         if (!isRunning) return;
@@ -140,20 +133,17 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
         return () => clearInterval(timer);
     }, [isRunning, isBreakTime,breakTime, initialTime, handleBreakEnd]);
 
-    useEffect(() => {
-      if (!isRunning || isBreakTime) return;
-  
-      Math.floor((accumulatedTime - lastSavedTime) / 60);
-    }, [accumulatedTime, lastSavedTime, isRunning, isBreakTime]);
+    // No automatic saving - only save on reset or session end
   
     useEffect(() => {
       const handleBeforeUnload = () => {
-        const minutesToSave = Math.floor((accumulatedTime - lastSavedTime) / 60);
-        if (minutesToSave > 0 && !isBreakTime) {
+        const totalMinutes = Math.floor(accumulatedTime / 60);
+        if (totalMinutes > 0 && !isBreakTime) {
           const payload = {
             userId: user.id,
             sessionDate: sessionStartedAt.split('T')[0],
-            sessionDuration: minutesToSave,
+            sessionDuration: totalMinutes,
+            sessionTaskIds: taskIds || []
           };
   
           if (navigator.sendBeacon) {
@@ -164,14 +154,12 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify(payload));
           }
-          localStorage.removeItem("accumulatedFocusTime");
-          localStorage.removeItem("lastSavedFocusTime");
         }
       };
   
       window.addEventListener('beforeunload', handleBeforeUnload);
       return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [accumulatedTime, lastSavedTime, isBreakTime, user.id, sessionStartedAt]);
+    }, [accumulatedTime, isBreakTime, user.id, sessionStartedAt, taskIds]);
 
     useEffect(() => {
         if (!savedStartTime) {
@@ -194,21 +182,19 @@ function FocusTimer ({ duration, onReset, handleBreakEnd, taskIds }) {
       };
     
       const handleReset = async () => {
-        const minutesToSave = Math.floor((accumulatedTime - lastSavedTime) / 60);
-        if (minutesToSave > 0 && !isBreakTime) {
-          await saveSessionData(minutesToSave);
+        const totalMinutes = Math.floor(accumulatedTime / 60);
+        if (totalMinutes > 0 && !isBreakTime) {
+          await saveSessionData(totalMinutes);
         }
       
         setTimeLeft(initialTime);
         setIsRunning(false);
         setIsBreakTime(false);
         setAccumulatedTime(0);
-        setLastSavedTime(0);
         localStorage.removeItem("focusTimerStartTime");
         localStorage.removeItem("focusTimerRunning");
         localStorage.removeItem("isBreakTime");
         localStorage.removeItem("accumulatedFocusTime");
-        localStorage.removeItem("lastSavedFocusTime");
         localStorage.removeItem("sessionStartedAt");
         onReset();
 
