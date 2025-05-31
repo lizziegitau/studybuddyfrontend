@@ -110,7 +110,6 @@ const Flashcards = () => {
       const data = await response.json();
   
       if (response.ok) {
-        showSnackbar("Flashcards loaded successfully!", "success");
         return data.flashcards;
       } else {
         console.error("Error fetching flashcards:", data.error);

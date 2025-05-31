@@ -95,7 +95,6 @@ function CreateFlashcardModal({ open, onClose, generateFlashcards, isFlashcardsL
             Upload your Word or PDF material and generate flashcards from your material.
           </Typography>
 
-          {/* Upload Button - Centered */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
             <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
               Upload files
@@ -103,12 +102,10 @@ function CreateFlashcardModal({ open, onClose, generateFlashcards, isFlashcardsL
             </Button>
           </Box>
 
-          {/* File Type Info - Centered */}
           <Typography variant="body2" sx={{ mb: 3, color: 'gray' }}>
             Only PDF and Word documents are currently supported
           </Typography>
 
-          {/* File Preview */}
           {selectedFiles.length > 0 && (
             <Box sx={{ mb: 3, textAlign: "left", maxHeight: "150px", overflowY: "auto" }}>
               <Typography variant="subtitle1" fontWeight="bold">Selected Files:</Typography>
